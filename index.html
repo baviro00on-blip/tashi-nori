@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たしざん・のりものずかん - のりものカードを集めよう！</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            color: #fff;
+            user-select: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 3Dボタン風アニメーション */
+        .btn-3d {
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+
+        /* カードのホログラム・キラ演出（カード枠内に限定） */
+        .card-foil {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-foil::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: linear-gradient(
+                115deg,
+                transparent 25%,
+                rgba(255, 255, 255, 0.6) 45%,
+                rgba(255, 0, 128, 0.4) 50%,
+                rgba(0, 255, 255, 0.4) 55%,
+                transparent 75%
+            );
+            transform: rotate(25deg);
+            pointer-events: none;
+            opacity: 0.7;
+            animation: foilShift 4s infinite linear;
+        }
+
+        @keyframes foilShift {
+            0% { transform: translateY(-30%) rotate(25deg); }
+            100% { transform: translateY(30%) rotate(25deg); }
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), 0 0 5px rgba(255, 255, 255, 0.8), inset 0 0 12px rgba(251, 191, 36, 0.6);
+        }
+
+        .super-glow {
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.9), 0 0 10px rgba(56, 189, 248, 0.9), inset 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 震えるアニメーション（間違い時） */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* 脈動アニメーション */
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+
+        /* 風で揺れる草むらのアニメーション */
+        @keyframes grassSway {
+            0%, 100% { transform: skewX(0deg); }
+            50% { transform: skewX(-4deg); }
+        }
+        .animate-grass-sway {
+            transform-origin: bottom center;
+            animation: grassSway 2.5s ease-in-out infinite;
+        }
+
+        /* ハート弾丸飛翔アニメーション */
+        @keyframes flyMissile {
+            0% { transform: translate(0, 0) scale(0.6) rotate(15deg); opacity: 0; }
+            20% { opacity: 1; }
+            80% { transform: translate(180px, -10px) scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: translate(210px, 0px) scale(1.2) rotate(0deg); opacity: 0; }
+        }
+        .animate-fly-missile {
+            animation: flyMissile 0.45s ease-in forwards;
+        }
+
+        /* ドット絵キャラクターの小刻みなバトルアニメーション */
+        @keyframes pixelBounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        .animate-pixel-bounce {
+            animation: pixelBounce 0.4s steps(2) infinite;
+        }
+
+        @keyframes pixelMonster {
+            0%, 100% { transform: translateY(0px) scaleX(1); }
+            50% { transform: translateY(-3px) scaleX(1.02); }
+        }
+        .animate-pixel-monster {
+            animation: pixelMonster 0.5s steps(2) infinite;
+        }
+
+        /* ドット絵のくっきり描画指定 */
+        .pixelated {
+            image-rendering: pixelated;
+        }
+
+        /* 超豪華レインボーネオンボーダー（全クリア・MUR時） */
+        @keyframes rainbowGlow {
+            0% { box-shadow: 0 0 25px #ef4444, inset 0 0 15px #ef4444; }
+            20% { box-shadow: 0 0 25px #f59e0b, inset 0 0 15px #f59e0b; }
+            40% { box-shadow: 0 0 25px #10b981, inset 0 0 15px #10b981; }
+            60% { box-shadow: 0 0 25px #06b6d4, inset 0 0 15px #06b6d4; }
+            80% { box-shadow: 0 0 25px #8b5cf6, inset 0 0 15px #8b5cf6; }
+            100% { box-shadow: 0 0 25px #ec4899, inset 0 0 15px #ec4899; }
+        }
+        .animate-rainbow-glow {
+            animation: rainbowGlow 2s linear infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen text-slate-100 overflow-hidden relative">
+
+    <!-- お祝い用花火・紙吹雪 Canvas -->
+    <canvas id="celebration-canvas" class="pointer-events-none fixed inset-0 z-50 hidden"></canvas>
+
+    <!-- ヘッダーナビゲーション -->
+    <header class="bg-slate-900/90 border-b border-indigo-500/30 px-4 py-2.5 shadow-md shrink-0">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="showStageSelect()">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-red-500 to-yellow-400 flex items-center justify-center font-black text-lg shadow-md border-2 border-white text-slate-900">
+                    ＋
+                </div>
+                <h1 class="font-black text-base sm:text-xl tracking-wider text-amber-300 drop-shadow">たしざん・のりものずかん</h1>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="showAlbum()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 px-3.5 rounded-full border border-indigo-300/40 flex items-center gap-1.5 shadow-md btn-3d text-xs sm:text-sm">
+                    <i data-lucide="book-open" class="w-4 h-4 text-yellow-300"></i>
+                    <span>カードずかん (<span id="card-count">0/20</span>)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-3 flex flex-col justify-between overflow-hidden">
+
+        <!-- 1. レベル選択画面 -->
+        <section id="stage-select-screen" class="flex flex-col justify-between h-full py-2 space-y-3">
+            <div class="text-center space-y-1">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white drop-shadow">「レベル」をえらぼう！</h2>
+                <p class="text-indigo-200 text-xs sm:text-sm">クリアするとのりものカードをGETできるよ！</p>
+            </div>
+
+            <!-- 通知用トーストメッセージ -->
+            <div id="toast-message" class="hidden transition-all duration-300 transform -translate-y-2 opacity-0 bg-slate-900/95 border-2 border-amber-400 text-amber-200 text-xs sm:text-sm font-black px-4 py-2 rounded-full shadow-2xl text-center max-w-sm mx-auto">
+                メッセージ
+            </div>
+
+            <div id="stages-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto w-full my-auto">
+                <!-- JavaScriptでレベルボタンが動的に挿入されます -->
+            </div>
+
+            <div id="stage-footer-tip" class="text-center text-slate-400 text-[11px]">
+                💡 クリアすると次のレベルがオープン！高いレベルほどレアなカードがたくさんもらえるよ！
+            </div>
+        </section>
+
+        <!-- 2. ゲーム画面 -->
+        <section id="game-screen" class="hidden flex flex-col justify-between h-full max-w-md mx-auto w-full py-1">
+            <!-- 進行度・ヘッダー情報 -->
+            <div class="w-full bg-slate-900/80 p-2.5 rounded-2xl border border-indigo-500/30 flex justify-between items-center shadow-lg shrink-0">
+                <div class="flex items-center gap-2">
+                    <span id="current-stage-title" class="text-lg sm:text-xl font-black text-amber-300">レベル1</span>
+                    <span id="current-round-tag" class="text-[11px] bg-indigo-500/40 text-indigo-200 px-2 py-0.5 rounded-full border border-indigo-400/30">こたえが 5いか</span>
+                </div>
+                <!-- ライフ表示 -->
+                <div class="flex items-center space-x-1" id="hearts-container">
+                    <i data-lucide="heart" class="w-6 h-6 text-red-500 fill-red-500"></i>
+                    <i data-lucide="heart" class="w-6 h-6 text-red-500 fill-red-500"></i>
+                    <i data-lucide="heart" class="w-6 h-6 text-red-500 fill-red-500"></i>
+                </div>
+            </div>
+
+            <!-- 残り問題数 10連四角ゲージ表示エリア -->
+            <div id="master-gauge-container" class="w-full bg-slate-900/80 p-2 rounded-xl border border-purple-500/30 flex items-center justify-between gap-2 shadow-md shrink-0 my-1">
+                <span class="text-[10px] font-black text-amber-300 shrink-0">のこり</span>
+                <div id="master-gauge-boxes" class="flex flex-1 items-center justify-between gap-1">
+                    <!-- JSで10個の四角ゲージを動的生成 -->
+                </div>
+            </div>
+
+            <!-- ドット絵バトルエリア（青空と風に揺れる草むら背景） -->
+            <div class="w-full border-2 border-emerald-400/60 rounded-2xl p-2 flex items-center justify-between shrink-0 my-1 relative overflow-hidden h-36 shadow-2xl bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-300">
+                
+                <!-- 雲アニメーション（背景遠景） -->
+                <div class="absolute top-2 left-6 w-12 h-4 bg-white/70 rounded-full blur-[0.5px]"></div>
+                <div class="absolute top-4 right-12 w-16 h-5 bg-white/60 rounded-full blur-[0.5px]"></div>
+
+                <!-- 風で揺れる草むらレイヤー（下部） -->
+                <div class="absolute bottom-0 inset-x-0 h-10 bg-emerald-500 border-t-2 border-emerald-400 flex items-end justify-around animate-grass-sway overflow-hidden pointer-events-none">
+                    <div class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[18px] border-b-emerald-600"></div>
+                    <div class="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[24px] border-b-emerald-600"></div>
+                    <div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[20px] border-b-emerald-600"></div>
+                    <div class="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-b-[26px] border-b-emerald-600"></div>
+                    <div class="w-0 h-0 border-l-[9px] border-l-transparent border-r-[9px] border-r-transparent border-b-[19px] border-b-emerald-600"></div>
+                </div>
+
+                <!-- 左：車に挑む男の子 -->
+                <div class="relative z-20 flex items-center justify-center pl-2">
+                    <div class="w-16 h-16 animate-pixel-bounce flex items-center justify-center filter drop-shadow-md select-none">
+                        <!-- 元気な男の子のSVG -->
+                        <svg class="w-16 h-16 pixelated filter drop-shadow-lg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- リュックサック -->
+                            <rect x="6" y="15" width="4" height="9" rx="1.5" fill="#dc2626" stroke="#0f172a" stroke-width="0.8"/>
+                            <!-- 脚＆スニーカー -->
+                            <rect x="11" y="23" width="3.5" height="5" fill="#1e3a8a"/>
+                            <rect x="16.5" y="23" width="3.5" height="5" fill="#1e3a8a"/>
+                            <rect x="10.5" y="27.5" width="5" height="2.5" rx="1" fill="#ef4444" stroke="#0f172a" stroke-width="0.7"/>
+                            <rect x="16.5" y="27.5" width="5.5" height="2.5" rx="1" fill="#ef4444" stroke="#0f172a" stroke-width="0.7"/>
+                            <!-- 胴体（青いTシャツ） -->
+                            <rect x="10" y="14" width="11" height="10" rx="1.5" fill="#2563eb" stroke="#0f172a" stroke-width="0.8"/>
+                            <polygon points="15.5,16 16.3,18 18.3,18 16.7,19.2 17.3,21 15.5,19.9 13.7,21 14.3,19.2 12.7,18 14.7,18" fill="#facc15"/>
+                            <!-- 前に突き出した腕 -->
+                            <rect x="19" y="15.5" width="7" height="3.2" rx="1.5" fill="#fed7aa" stroke="#0f172a" stroke-width="0.7"/>
+                            <rect x="18" y="15" width="3" height="4" rx="1" fill="#2563eb"/>
+                            <!-- 頭＆顔 -->
+                            <circle cx="15.5" cy="9.5" r="5.5" fill="#fed7aa" stroke="#0f172a" stroke-width="0.8"/>
+                            <!-- 茶色い髪の毛 -->
+                            <path d="M10 9 C10 5.5 21 5.5 21 9 L19 10 L16 8.5 L12 10 Z" fill="#78350f"/>
+                            <!-- 目と笑顔 -->
+                            <circle cx="17.8" cy="9.8" r="0.9" fill="#0f172a"/>
+                            <path d="M16.5 12 Q18 13.2 19.3 12" stroke="#dc2626" stroke-width="0.9" stroke-linecap="round" fill="none"/>
+                            <!-- 赤いキャップ帽子 -->
+                            <path d="M9.5 7.5 C9.5 3.5 21.5 3.5 21.5 7.5 Z" fill="#ef4444" stroke="#0f172a" stroke-width="0.8"/>
+                            <rect x="15" y="6.2" width="9.5" height="1.8" rx="0.8" fill="#dc2626" stroke="#0f172a" stroke-width="0.7"/>
+                        </svg>
+                    </div>
+
+                    <!-- 飛んでいくハート -->
+                    <div id="missile-anim" class="hidden absolute left-12 top-4 z-30 pointer-events-none">
+                        <svg class="w-8 h-8 pixelated drop-shadow-lg" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 14.5 C8 14.5 1.5 10.2 1.5 5.5 C1.5 3.3 3.2 1.8 5.2 1.8 C6.5 1.8 7.5 2.5 8 3.5 C8.5 2.5 9.5 1.8 10.8 1.8 C12.8 1.8 14.5 3.3 14.5 5.5 C14.5 10.2 8 14.5 8 14.5 Z" fill="#f43f5e" stroke="#ffffff" stroke-width="1.2"/>
+                            <ellipse cx="4.8" cy="4.8" rx="1.4" ry="0.9" transform="rotate(-25 4.8 4.8)" fill="#fecdd3"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 右：ターゲットの車 -->
+                <div id="wild-pokemon-container" class="relative z-10 flex flex-col items-center justify-center w-36 h-32 pr-2 overflow-visible">
+                    <div id="target-pokemon-scale-box" class="transition-all duration-500 origin-center flex flex-col items-center scale-[2.2]">
+                        <div class="animate-pixel-monster flex flex-col items-center">
+                            <div id="pixel-monster-svg-box" class="w-16 h-16 filter drop-shadow-xl flex items-center justify-center">
+                                <!-- JSで生成される車アイコン -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hit-explosion" class="hidden absolute z-30 pointer-events-none">
+                        <div class="text-3xl animate-ping">💥</div>
+                    </div>
+
+                    <div id="capture-stars" class="hidden absolute z-40 pointer-events-none text-2xl font-black text-amber-300 animate-bounce drop-shadow">
+                        ✨ GET! ✨
+                    </div>
+                </div>
+            </div>
+
+            <!-- 問題表示 -->
+            <div class="w-full shrink-0 my-2">
+                <div class="w-full h-32 sm:h-36 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 border-4 border-white shadow-xl flex flex-col items-center justify-center p-2 text-slate-900 animate-pulse-subtle">
+                    <div id="question-text" class="text-4xl sm:text-5xl font-black tracking-wider text-slate-900 my-1">
+                        1 ＋ 1
+                    </div>
+                    <div id="yomi-text" class="text-xs sm:text-sm font-bold text-amber-900 bg-amber-100/90 px-3 py-0.5 rounded-full border border-amber-300">
+                        いち たす いち は
+                    </div>
+                </div>
+            </div>
+
+            <!-- 選択肢 4択 -->
+            <div class="w-full shrink-0 my-2">
+                <div id="options-grid" class="flex justify-center items-center gap-2 sm:gap-4 w-full">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
+
+            <div class="text-center text-indigo-300/70 text-[11px] shrink-0">
+                せいかいの 丸いカードを選んでね！
+            </div>
+        </section>
+
+        <!-- 3. クリア演出画面 -->
+        <section id="clear-screen" class="hidden flex flex-col justify-center items-center h-full max-w-2xl mx-auto w-full py-2 relative z-40">
+            <div id="clear-modal-box" class="bg-slate-900/95 border-2 border-amber-400/60 rounded-3xl p-4 sm:p-5 shadow-2xl w-full text-center space-y-3 relative overflow-y-auto max-h-full">
+                <div class="space-y-1">
+                    <div id="clear-badge" class="inline-block px-4 py-1 rounded-full text-xs font-black bg-amber-400 text-slate-900 shadow">
+                        GOLD CLEAR!
+                    </div>
+                    <h2 id="clear-title" class="text-2xl font-black text-amber-300 drop-shadow">レベル1 クリア！</h2>
+                    <p id="clear-subtitle" class="text-indigo-200 text-xs sm:text-sm">のりものカードを ゲットしたよ！</p>
+                    
+                    <div id="world-clear-banner" class="hidden my-2 py-2 px-3 bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600 text-white font-black text-sm rounded-xl shadow-lg border-2 border-white animate-bounce">
+                        🎉 コンプリート達成！ 🎉
+                    </div>
+                </div>
+
+                <!-- 獲得カードプレビュー（1〜5枚対応） -->
+                <div class="flex justify-center py-1 overflow-x-auto">
+                    <div id="reward-card-container" class="flex flex-wrap justify-center items-center gap-2.5">
+                        <!-- カードDOM -->
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-1 max-w-md mx-auto">
+                    <button id="next-btn" onclick="handleNextStep()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-lg font-black rounded-xl shadow-lg btn-3d border border-white/20 flex items-center justify-center gap-2">
+                        <span>つぎへ すすむ</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="startStage(currentStageNumber)" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-base rounded-xl shadow-md btn-3d border border-white/20 flex items-center justify-center gap-2">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span>もう１かいする</span>
+                    </button>
+                    <button onclick="showStageSelect()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl shadow-md btn-3d border border-white/20 flex items-center justify-center gap-2 text-sm">
+                        <i data-lucide="home" class="w-4 h-4"></i>
+                        <span>メニューに戻る</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. アルバム（カード図鑑）画面 -->
+        <section id="album-screen" class="hidden flex flex-col h-full space-y-2 overflow-hidden">
+            <div class="flex justify-between items-center border-b border-indigo-500/30 pb-2 shrink-0">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-black text-amber-300 flex items-center gap-1.5">
+                        <i data-lucide="award" class="w-6 h-6 text-yellow-400"></i> のりものカードずかん
+                    </h2>
+                    <p class="text-indigo-200 text-xs">ゲットしたカードをタップして大きくみられるよ！</p>
+                </div>
+                <button onclick="showStageSelect()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs btn-3d">
+                    もどる
+                </button>
+            </div>
+
+            <!-- カードグリッド -->
+            <div id="album-grid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-1">
+                <!-- 動的に生成 -->
+            </div>
+        </section>
+
+        <!-- 5. カード拡大モーダル -->
+        <div id="card-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4" onclick="closeCardModal()">
+            <div class="relative transform scale-125 sm:scale-150 transition-transform duration-300" onclick="event.stopPropagation()">
+                <div id="modal-card-container"></div>
+            </div>
+            <button onclick="closeCardModal()" class="mt-12 bg-white/20 hover:bg-white/30 text-white font-black px-6 py-2 rounded-full border border-white/40 text-sm shadow-xl backdrop-blur-md">
+                とじる
+            </button>
+        </div>
+
+        <!-- ゲームオーバーモーダル -->
+        <div id="gameover-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border-2 border-red-500/60 rounded-3xl p-5 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                <div class="w-14 h-14 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto border border-red-500/40">
+                    <i data-lucide="heart-off" class="w-8 h-8"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-xl font-black text-white">ざんねん！ライフがなくなったよ</h3>
+                    <p class="text-slate-300 text-xs">もういちど 挑戦して クリアを目指そう！</p>
+                </div>
+                <button onclick="retryCurrentStage()" class="w-full py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 text-white font-black text-base rounded-xl shadow-lg btn-3d">
+                    もう一回する
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        // --- 1. 定数とデータ定義 ---
+
+        const SAVE_KEY = 'tasupoke_jr_save_v1';
+
+        const LEVELS_INFO = [
+            { level: 1, title: 'レベル1', desc: 'こたえが 5いか', rewardCount: 1, maxPool: 20 },
+            { level: 2, title: 'レベル2', desc: 'こたえが 10いか', rewardCount: 2, maxPool: 30 },
+            { level: 3, title: 'レベル3', desc: '10いくつ ＋ 1けた', rewardCount: 3, maxPool: 40 },
+            { level: 4, title: 'レベル4', desc: 'くりあがりの たしざん', rewardCount: 4, maxPool: 50 },
+            { level: 5, title: 'レベル5', desc: 'レベル2〜4 ランダム', rewardCount: 5, maxPool: 60 }
+        ];
+
+        const NUM_YOMI = {
+            0: "れい", 1: "いち", 2: "に", 3: "さん", 4: "よん", 5: "ご",
+            6: "ろく", 7: "なな", 8: "はち", 9: "きゅう", 10: "じゅう",
+            11: "じゅういち", 12: "じゅうに", 13: "じゅうさん", 14: "じゅうよん", 15: "じゅうご",
+            16: "じゅうろく", 17: "じゅうなな", 18: "じゅうはち", 19: "じゅうきゅう", 20: "にじゅう"
+        };
+
+        const NUM_SPEAK = {
+            0: "レイ", 1: "イチ", 2: "ニ", 3: "サン", 4: "ヨン", 5: "ゴ",
+            6: "ロク", 7: "ナナ", 8: "ハチ", 9: "キュウ", 10: "ジュウ",
+            11: "ジュウイチ", 12: "ジュウニ", 13: "ジュウサン", 14: "ジュウヨン", 15: "ジュウゴ",
+            16: "ジュウロク", 17: "ジュウナナ", 18: "ジュウハチ", 19: "ジュウキュウ", 20: "ニジュウ"
+        };
+
+        // レア度9段階定義
+        const RARITY_ORDER = ['C', 'U', 'R', 'RR', 'AR', 'SR', 'SAR', 'UR', 'MUR'];
+
+        // レベル別レア度出現ウェイト
+        const LEVEL_RARITY_WEIGHTS = {
+            1: { 'C': 100, 'U': 40 },
+            2: { 'C': 100, 'U': 55, 'R': 25 },
+            3: { 'C': 100, 'U': 65, 'R': 35, 'RR': 18 },
+            4: { 'C': 100, 'U': 70, 'R': 45, 'RR': 25, 'AR': 12, 'SR': 6 },
+            5: { 'C': 100, 'U': 75, 'R': 55, 'RR': 35, 'AR': 20, 'SR': 12, 'SAR': 6, 'UR': 3, 'MUR': 1.5 }
+        };
+
+        // レアリティの重みに基づいてカードを1枚ランダム抽選するヘルパー関数
+        function pickWeightedCard(cardArray, level) {
+            if (!cardArray || cardArray.length === 0) return POKEMON_CARDS[0];
+            const weightTable = LEVEL_RARITY_WEIGHTS[level] || LEVEL_RARITY_WEIGHTS[1];
+            const weights = cardArray.map(c => weightTable[c.rarity] || 1);
+            const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+            let random = Math.random() * totalWeight;
+            for (let i = 0; i < cardArray.length; i++) {
+                if (random < weights[i]) {
+                    return cardArray[i];
+                }
+                random -= weights[i];
+            }
+            return cardArray[0];
+        }
+
+        // 60種類の「のりものカード」データ
+        // カテゴリー6種×各10種類：
+        // 1.子どもの乗り物（遊園地の乗り物を含む） 2.空を飛ぶ乗り物 3.海の乗り物 4.働く車 5.国産車 6.外車
+        const POKEMON_CARDS = [
+            // C (10枚) - 1〜10番目
+            { id: 'p1', name: 'さんりんしゃ', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'tricycle', rarity: 'C', desc: 'まえに おおきな タイヤが 1つ、うしろに 2つ。ねだんは 約1万円。', bgTone: 'from-pink-950 via-rose-950 to-stone-950', accentColor: '#f43f5e' },
+            { id: 'p2', name: 'ほじょりんつきじてんしゃ', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'kids_bike', rarity: 'C', desc: 'たおれない ほじょりんで れんしゅうできる！ねだんは 約2万5千円。', bgTone: 'from-rose-950 via-amber-950 to-stone-950', accentColor: '#fb7185' },
+            { id: 'p3', name: 'キックボード', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'kickboard', rarity: 'C', desc: 'かたあしで じめんを けって スイスイ すすむ！ねだんは 約8千円。', bgTone: 'from-purple-950 via-pink-950 to-stone-950', accentColor: '#e879f9' },
+            { id: 'p4', name: 'ねつききゅう', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'balloon', rarity: 'C', desc: 'あたたかい くうきで ふうせんを うかばせて とぶよ。約500万円。', bgTone: 'from-sky-950 via-cyan-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p5', name: 'グライダー', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'glider', rarity: 'C', desc: 'エンジンなしで かぜの ちからだけで そらを とぶ。約800万円。', bgTone: 'from-sky-950 via-blue-950 to-stone-950', accentColor: '#7dd3fc' },
+            { id: 'p6', name: 'てこぎボート', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'rowboat', rarity: 'C', desc: '2ほんの オールを こいで いけや みずうみを すすむ。約15万円。', bgTone: 'from-blue-950 via-sky-950 to-stone-950', accentColor: '#60a5fa' },
+            { id: 'p7', name: 'ヨット', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'yacht', rarity: 'C', desc: 'おおきな ほに かぜを うけて うみを すべるように すすむ。約300万円。', bgTone: 'from-cyan-950 via-blue-950 to-stone-950', accentColor: '#22d3ee' },
+            { id: 'p8', name: 'ゴミしゅうしゅうしゃ', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'garbage_truck', rarity: 'C', desc: 'まちの ゴミを 集めて おなかの なかに おしこむよ。約900万円。', bgTone: 'from-amber-950 via-yellow-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p9', name: 'けいじどうしゃ', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'kei_car', rarity: 'C', desc: 'きいろい ナンバーで せまい みちも らくらく はしれる！約150万円。', bgTone: 'from-emerald-950 via-teal-950 to-stone-950', accentColor: '#34d399' },
+            { id: 'p10', name: 'コンパクトがいしゃ', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'eu_compact', rarity: 'C', desc: 'ヨーロッパの まちを はしる おしゃれで ちいさな くるま。約300万円。', bgTone: 'from-violet-950 via-indigo-950 to-stone-950', accentColor: '#a78bfa' },
+
+            // U (10枚) - 11〜20番目
+            { id: 'p11', name: 'バッテリーカー', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'battery_car', rarity: 'U', desc: 'でんきの ちからで うごく こどもようの くるま。ねだんは 約3万円。', bgTone: 'from-pink-950 via-fuchsia-950 to-stone-950', accentColor: '#f472b6' },
+            { id: 'p12', name: 'ゴーカート', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'gokart', rarity: 'U', desc: 'ゆうえんちの コースを じぶんで うんてん！1かい 約500円。', bgTone: 'from-rose-950 via-red-950 to-stone-950', accentColor: '#ef4444' },
+            { id: 'p13', name: 'プロペラき', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'prop_plane', rarity: 'U', desc: 'まえの プロペラを ぐるぐる まわして とぶ ひこうき。約4000万円。', bgTone: 'from-sky-950 via-indigo-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p14', name: 'ヘリコプター', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'helicopter', rarity: 'U', desc: 'うえの はねを まわして そらで ピタッと とまれる！約2億円。', bgTone: 'from-blue-950 via-cyan-950 to-stone-950', accentColor: '#0ea5e9' },
+            { id: 'p15', name: 'すいじょうバイク', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'jetski', rarity: 'U', desc: 'うみの うえを バイクのように はしる のりもの。約200万円。', bgTone: 'from-teal-950 via-cyan-950 to-stone-950', accentColor: '#2dd4bf' },
+            { id: 'p16', name: 'フェリー', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'ferry', rarity: 'U', desc: 'ひとも くるまも いっしょに のせて はこぶ おおきな ふね。約50億円。', bgTone: 'from-blue-950 via-indigo-950 to-stone-950', accentColor: '#60a5fa' },
+            { id: 'p17', name: 'たくはいトラック', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'delivery_truck', rarity: 'U', desc: 'みんなの おうちに だいじな にもつを とどけるよ。約500万円。', bgTone: 'from-amber-950 via-orange-950 to-stone-950', accentColor: '#f59e0b' },
+            { id: 'p18', name: 'コンパクトカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'compact_car', rarity: 'U', desc: 'うんてんしやすく まいにちの おかいものに べんりな くるま。約200万円。', bgTone: 'from-emerald-950 via-green-950 to-stone-950', accentColor: '#10b981' },
+            { id: 'p19', name: 'ミニバン', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'minivan', rarity: 'U', desc: 'かぞく みんなで ゆったり のれる せの たかい くるま。約350万円。', bgTone: 'from-teal-950 via-emerald-950 to-stone-950', accentColor: '#34d399' },
+            { id: 'p20', name: 'ピックアップトラック', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'us_pickup', rarity: 'U', desc: 'うしろに おおきな にだいが ある アメリカで にんきの くるま。約700万円。', bgTone: 'from-purple-950 via-violet-950 to-stone-950', accentColor: '#c084fc' },
+
+            // R (10枚) - 21〜30番目
+            { id: 'p21', name: 'コーヒーカップ', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'coffeecup', rarity: 'R', desc: 'ハンドルを まわすと グルグル かいそく かいてん！1かい 約400円。', bgTone: 'from-pink-950 via-purple-950 to-stone-950', accentColor: '#f472b6' },
+            { id: 'p22', name: 'メリーゴーラウンド', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'merrygoround', rarity: 'R', desc: 'おんがくに あわせて おうまさんが じょうげに うごくよ。1かい 約500円。', bgTone: 'from-fuchsia-950 via-pink-950 to-stone-950', accentColor: '#fbbf24' },
+            { id: 'p23', name: 'ひこうせん', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'airship', rarity: 'R', desc: 'かるい ガスで うかび ゆっくり そらを さんぽする。約15億円。', bgTone: 'from-sky-950 via-blue-950 to-stone-950', accentColor: '#93c5fd' },
+            { id: 'p24', name: 'ジャンボジェットき', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'jumbo_jet', rarity: 'R', desc: 'たくさんの ひとを のせて せかいじゅうを とぶ！約300億円。', bgTone: 'from-blue-950 via-sky-900 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p25', name: 'ぎょせん', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'fishing_boat', rarity: 'R', desc: 'うみで たくさんの おさかなを つかまえる ふね。約1億円。', bgTone: 'from-blue-950 via-indigo-950 to-stone-950', accentColor: '#3b82f6' },
+            { id: 'p26', name: 'ホバークラフト', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'hovercraft', rarity: 'R', desc: 'くうきの クッションで うみも りくも はしれる！約15億円。', bgTone: 'from-cyan-950 via-teal-950 to-stone-950', accentColor: '#06b6d4' },
+            { id: 'p27', name: 'パトカー', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'patrol_car', rarity: 'R', desc: 'サイレンを ならして まちの あんぜんを まもる くるま。約400万円。', bgTone: 'from-slate-900 via-amber-950 to-stone-950', accentColor: '#ef4444' },
+            { id: 'p28', name: 'きゅうきゅうしゃ', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'ambulance', rarity: 'R', desc: 'びょうきや けがの ひとを びょういんへ いそいで はこぶよ。約3000万円。', bgTone: 'from-red-950 via-amber-950 to-stone-950', accentColor: '#f87171' },
+            { id: 'p29', name: 'ハイブリッドカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'hybrid_car', rarity: 'R', desc: 'ガソリンと でんきで はしり ねんぴが とても いいよ。約300万円。', bgTone: 'from-emerald-950 via-cyan-950 to-stone-950', accentColor: '#2dd4bf' },
+            { id: 'p30', name: 'がいしゃセダン', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'eu_sedan', rarity: 'R', desc: 'こうそくどうろを あんていして はしる ドイツなどの くるま。約800万円。', bgTone: 'from-indigo-950 via-violet-950 to-stone-950', accentColor: '#818cf8' },
+
+            // RR (10枚) - 31〜40番目
+            { id: 'p31', name: 'ミニSL', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'minisl', rarity: 'RR', desc: 'けむりを だして レールの うえを はしる きかんしゃ。1かい 約400円。', bgTone: 'from-stone-900 via-pink-950 to-stone-950', accentColor: '#ef4444' },
+            { id: 'p32', name: 'せんとうき', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'fighter_jet', rarity: 'RR', desc: 'おとよりも はやい スピードで そらを まもる。約120億円。', bgTone: 'from-slate-900 via-sky-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p33', name: 'せんすいかん', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'submarine', rarity: 'RR', desc: 'ふかい うみの なかに もぐって すすむ とくべつな ふね。約700億円。', bgTone: 'from-blue-950 via-slate-900 to-stone-950', accentColor: '#fbbf24' },
+            { id: 'p34', name: 'しょうぼうしゃ', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'fire_truck', rarity: 'RR', desc: 'みずを だしたり はしごを のばして かじを けすよ。約1億円。', bgTone: 'from-red-950 via-orange-950 to-stone-950', accentColor: '#ef4444' },
+            { id: 'p35', name: 'ブルドーザー', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'bulldozer', rarity: 'RR', desc: 'まえの おおきな いたで つちや じゃりを おして たいらにする。約3000万円。', bgTone: 'from-amber-950 via-yellow-900 to-stone-950', accentColor: '#facc15' },
+            { id: 'p36', name: 'こくさんSUV', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_suv', rarity: 'RR', desc: 'やまみちや ゆきみちも 力づよく はしれる くるま。約450万円。', bgTone: 'from-emerald-950 via-teal-900 to-stone-950', accentColor: '#10b981' },
+            { id: 'p37', name: 'こくさんオープンカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_opencar', rarity: 'RR', desc: 'やねを あけて かぜを かんじながら はしれる くるま！約350万円。', bgTone: 'from-lime-950 via-emerald-950 to-stone-950', accentColor: '#a3e635' },
+            { id: 'p38', name: 'クラシックカー', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'classic_car', rarity: 'RR', desc: 'むかしの おしゃれな かたちを たいせつに のこした めいしゃ。約1000万円。', bgTone: 'from-amber-950 via-violet-950 to-stone-950', accentColor: '#fbbf24' },
+            { id: 'p39', name: 'ヨーロピアンワゴン', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'eu_wagon', rarity: 'RR', desc: 'トランクが ひろくて ながい りょこうも へいきな がいしゃ。約750万円。', bgTone: 'from-purple-950 via-indigo-950 to-stone-950', accentColor: '#a855f7' },
+            { id: 'p40', name: 'ロンドンバス', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'london_bus', rarity: 'RR', desc: 'イギリスの まちなみを はしる あかい 2かいだて バス！約4000万円。', bgTone: 'from-red-950 via-violet-950 to-stone-950', accentColor: '#ef4444' },
+
+            // AR (6枚) - 41〜46番目
+            { id: 'p41', name: 'かんらんしゃ', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'ferriswheel', rarity: 'AR', desc: 'たかい ところから まちを みわたせる！1かい 約800円。', bgTone: 'from-pink-950 via-amber-950 to-stone-950', accentColor: '#f472b6' },
+            { id: 'p42', name: 'ゆうらんせん', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'pleasure_boat', rarity: 'AR', desc: 'きれいな うみの けしきを たのしみながら のれる ふね。約10億円。', bgTone: 'from-sky-950 via-teal-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p43', name: 'ショベルカー', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'excavator', rarity: 'AR', desc: 'おおきな うでと バケットで じめんを ザクザク ほるよ！約2000万円。', bgTone: 'from-amber-950 via-orange-950 to-stone-950', accentColor: '#f59e0b' },
+            { id: 'p44', name: 'こくさんスポーツカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_sports', rarity: 'AR', desc: 'ひくくて かっこいい デザインで カーブも じょうずに まがる！約500万円。', bgTone: 'from-emerald-950 via-cyan-950 to-stone-950', accentColor: '#34d399' },
+            { id: 'p45', name: 'ラグジュアリーSUV', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'lux_suv', rarity: 'AR', desc: 'おおきくて ごうかな なかみの せかいじゅうで にんきの SUV。約1500万円。', bgTone: 'from-purple-950 via-fuchsia-950 to-stone-950', accentColor: '#e879f9' },
+            { id: 'p46', name: 'アメリカンマッスルカー', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'us_muscle', rarity: 'AR', desc: 'おおきな エンジンで 力づよく ほえる アメリカの スポーツカー！約900万円。', bgTone: 'from-indigo-950 via-rose-950 to-stone-950', accentColor: '#fb7185' },
+
+            // SR (6枚) - 47〜52番目
+            { id: 'p47', name: 'ジェットコースター', category: '子ども', catBg: 'bg-pink-500 text-white', svgId: 'rollercoaster', rarity: 'SR', desc: 'ものすごい スピードで きゅうこうか！1かい 約1200円。', bgTone: 'from-rose-950 via-purple-950 to-stone-950', accentColor: '#ec4899' },
+            { id: 'p48', name: 'ステルスき', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'stealth', rarity: 'SR', desc: 'レーダーに うつりにくい とくべつな かたちの ひこうき。約200億円。', bgTone: 'from-slate-950 via-indigo-950 to-stone-950', accentColor: '#818cf8' },
+            { id: 'p49', name: 'ごうかきゃくせん', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'cruise_ship', rarity: 'SR', desc: 'プールや レストランも ある うみの うえの ホテル！約1000億円。', bgTone: 'from-blue-950 via-cyan-950 to-stone-950', accentColor: '#22d3ee' },
+            { id: 'p50', name: 'クレーンしゃ', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'crane_truck', rarity: 'SR', desc: 'ながい ブームを のばして おもい ものを つりあげる！約8000万円。', bgTone: 'from-amber-950 via-yellow-900 to-stone-950', accentColor: '#fbbf24' },
+            { id: 'p51', name: 'こくさんGTカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_gt', rarity: 'SR', desc: 'レースぎじゅつが つまった にほんが ほこる こうせいのう車！約1500万円。', bgTone: 'from-emerald-950 via-teal-950 to-stone-950', accentColor: '#10b981' },
+            { id: 'p52', name: 'ヨーロピアンスポーツ', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'eu_sports', rarity: 'SR', desc: 'うつくしい フォルムと ばつぐんの はしりを もつ めいしゃ。約2000万円。', bgTone: 'from-violet-950 via-pink-950 to-stone-950', accentColor: '#c084fc' },
+
+            // SAR (4枚) - 53〜56番目
+            { id: 'p53', name: 'スペースシャトル', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'spaceshuttle', rarity: 'SAR', desc: 'うちゅうと ちきゅうを なんども いききできる うちゅうせん。約2000億円。', bgTone: 'from-indigo-950 via-sky-950 to-stone-950', accentColor: '#38bdf8' },
+            { id: 'p54', name: 'ちょうおおがたタンカー', category: 'うみ', catBg: 'bg-blue-500 text-white', svgId: 'tanker', rarity: 'SAR', desc: 'せきゆを たくさん はこぶ ビルよりも おおきな ふね！約150億円。', bgTone: 'from-blue-950 via-purple-950 to-stone-950', accentColor: '#60a5fa' },
+            { id: 'p55', name: 'ダンプカー', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'dump_truck', rarity: 'SAR', desc: 'にだいを かたむけて たくさんの つちや いしを おろすよ。約1500万円。', bgTone: 'from-amber-950 via-rose-950 to-stone-950', accentColor: '#f59e0b' },
+            { id: 'p56', name: 'こくさんスーパーカー', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_supercar', rarity: 'SAR', desc: 'ハイブリッドと ターボで ものすごい スピードを だす！約3000万円。', bgTone: 'from-emerald-950 via-purple-950 to-stone-950', accentColor: '#34d399' },
+
+            // UR (2枚) - 57〜58番目
+            { id: 'p57', name: 'うちゅうロケット', category: 'そら', catBg: 'bg-sky-400 text-stone-950', svgId: 'rocket', rarity: 'UR', desc: 'すごい ほのおを ふきだし うちゅうへ とびだす！約100億円。', bgTone: 'from-amber-950 via-yellow-900 to-stone-950', accentColor: '#fbbf24' },
+            { id: 'p58', name: 'こくさんさいこうきゅうしゃ', category: 'こくさん', catBg: 'bg-emerald-500 text-stone-950', svgId: 'jp_limousine', rarity: 'UR', desc: 'VIPも のる にほん さいこうほうの ゆうがで しずかな くるま。約2500万円。', bgTone: 'from-amber-950 via-emerald-950 to-stone-950', accentColor: '#fbbf24' },
+
+            // MUR (2枚) - 59〜60番目
+            { id: 'p59', name: 'ちょうおおがたクレーンしゃ', category: 'はたらく', catBg: 'bg-amber-500 text-stone-950', svgId: 'super_crane', rarity: 'MUR', desc: 'きょだいな ビルや はしを つくる さいきょうの はたらくくるま！約10億円。', bgTone: 'from-rose-950 via-amber-950 to-stone-950', accentColor: '#f43f5e' },
+            { id: 'p60', name: 'さいそくハイパーカー', category: 'がいしゃ', catBg: 'bg-violet-500 text-white', svgId: 'hypercar', rarity: 'MUR', desc: 'じそく 400キロを こえる ゆめの ような ちょうこうきゅう車！約4億円。', bgTone: 'from-red-950 via-purple-950 to-stone-950', accentColor: '#ec4899' }
+        ];
+
+        // --- 2. ゲーム状態管理 ---
+
+        let gameState = {
+            unlockedLevels: [1],
+            clearedRanks: {},
+            ownedCards: [],
+            newCards: [],
+            currentLevel: 1,
+            currentQuestionIndex: 0,
+            lives: 3,
+            questions: [],
+            currentMonsterIndex: 0
+        };
+
+        let currentStageNumber = 1;
+        let isProcessingAnswer = false;
+
+        // 最初の20種類（インデックス0〜19）がコンプリートされているか判定
+        function isFirst20Complete() {
+            const first20 = POKEMON_CARDS.slice(0, 20);
+            return first20.every(c => gameState.ownedCards.includes(c.id));
+        }
+
+        // 最初の40種類（インデックス0〜39）がコンプリートされているか判定
+        function isFirst40Complete() {
+            const first40 = POKEMON_CARDS.slice(0, 40);
+            return first40.every(c => gameState.ownedCards.includes(c.id));
+        }
+
+        // 現在の全体のカード種類上限（20 -> 40 -> 60）を取得
+        function getGlobalCardLimit() {
+            if (!isFirst20Complete()) return 20;
+            if (!isFirst40Complete()) return 40;
+            return 60;
+        }
+
+        // 図鑑カウント表示更新 (0/20 -> 20/40 -> 40/60)
+        function updateCardCountDisplay() {
+            const countEl = document.getElementById('card-count');
+            if (!countEl) return;
+            
+            const limit = getGlobalCardLimit();
+            if (limit === 20) {
+                const owned20 = POKEMON_CARDS.slice(0, 20).filter(c => gameState.ownedCards.includes(c.id)).length;
+                countEl.innerText = `${owned20}/20`;
+            } else if (limit === 40) {
+                const owned40 = POKEMON_CARDS.slice(0, 40).filter(c => gameState.ownedCards.includes(c.id)).length;
+                countEl.innerText = `${owned40}/40`;
+            } else {
+                countEl.innerText = `${gameState.ownedCards.length}/60`;
+            }
+        }
+
+        // --- セーブ・ロード処理 ---
+        function saveData() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                    unlockedLevels: gameState.unlockedLevels,
+                    clearedRanks: gameState.clearedRanks,
+                    ownedCards: gameState.ownedCards,
+                    newCards: gameState.newCards
+                }));
+            } catch (e) {
+                console.error('Save error:', e);
+            }
+            updateCardCountDisplay();
+        }
+
+        function loadSaveData() {
+            try {
+                const saved = localStorage.getItem(SAVE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.unlockedLevels) gameState.unlockedLevels = parsed.unlockedLevels;
+                    if (parsed.clearedRanks) gameState.clearedRanks = parsed.clearedRanks;
+                    if (parsed.ownedCards) gameState.ownedCards = parsed.ownedCards;
+                    if (parsed.newCards) gameState.newCards = parsed.newCards;
+                }
+            } catch (e) {
+                console.error('Load error:', e);
+            }
+
+            if (!Array.isArray(gameState.unlockedLevels) || gameState.unlockedLevels.length === 0) {
+                gameState.unlockedLevels = [1];
+            }
+
+            updateCardCountDisplay();
+        }
+
+        // --- サウンド＆音声読み上げ（Web Audio API & SpeechSynthesis） ---
+        let audioCtx = null;
+        let bgmInterval = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        document.addEventListener('pointerdown', () => { getAudioContext(); }, { once: false });
+
+        function playPinpon() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(1046.50, now);
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.3);
+
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(1567.98, now + 0.15);
+            gain2.gain.setValueAtTime(0.3, now + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.15);
+            osc2.stop(now + 0.5);
+        }
+
+        function playBuzzer() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.setValueAtTime(120, now + 0.15);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        function playFanfare(isAllClear = false) {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            const notes = isAllClear 
+                ? [523.25, 659.25, 783.99, 1046.50, 880.00, 1046.50, 1174.66, 1318.51]
+                : [523.25, 659.25, 783.99, 1046.50];
+
+            notes.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const startTime = now + idx * 0.12;
+                const duration = idx === notes.length - 1 ? 0.8 : 0.15;
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.3, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            });
+        }
+
+        function playCompleteFanfare() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50, 1174.66, 1318.51, 1567.98, 1760.00, 2093.00];
+
+            notes.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const startTime = now + idx * 0.1;
+                const duration = idx === notes.length - 1 ? 1.5 : 0.2;
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.35, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            });
+        }
+
+        function startBGM() {
+            stopBGM();
+            const ctx = getAudioContext();
+            if (!ctx) return;
+
+            // 明るく楽しいCメジャーの軽快なメロディ＆ベース
+            const bassNotes = [
+                130.81, 196.00, 130.81, 196.00,
+                174.61, 261.63, 130.81, 196.00,
+                146.83, 196.00, 130.81, 196.00,
+                196.00, 246.94, 261.63, 196.00
+            ];
+            const leadNotes = [
+                523.25, 659.25, 783.99, 659.25,
+                698.46, 880.00, 783.99, 659.25,
+                587.33, 698.46, 659.25, 523.25,
+                587.33, 783.99, 523.25, 0
+            ];
+            let noteIdx = 0;
+
+            bgmInterval = setInterval(() => {
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const now = audioCtx.currentTime;
+
+                const bassFreq = bassNotes[noteIdx % bassNotes.length];
+                if (bassFreq > 0) {
+                    const bassOsc = audioCtx.createOscillator();
+                    const bassGain = audioCtx.createGain();
+                    bassOsc.type = 'triangle';
+                    bassOsc.frequency.setValueAtTime(bassFreq, now);
+                    bassGain.gain.setValueAtTime(0.09, now);
+                    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                    bassOsc.connect(bassGain);
+                    bassGain.connect(audioCtx.destination);
+                    bassOsc.start(now);
+                    bassOsc.stop(now + 0.14);
+                }
+
+                const leadFreq = leadNotes[noteIdx % leadNotes.length];
+                if (leadFreq > 0) {
+                    const leadOsc = audioCtx.createOscillator();
+                    const leadGain = audioCtx.createGain();
+                    leadOsc.type = 'triangle';
+                    leadOsc.frequency.setValueAtTime(leadFreq, now);
+                    leadGain.gain.setValueAtTime(0.07, now);
+                    leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    leadOsc.connect(leadGain);
+                    leadGain.connect(audioCtx.destination);
+                    leadOsc.start(now);
+                    leadOsc.stop(now + 0.15);
+                }
+
+                noteIdx++;
+            }, 165);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        function speakAddQuestion(num1, num2) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const n1Str = NUM_SPEAK[num1] || `${num1}`;
+            const n2Str = NUM_SPEAK[num2] || `${num2}`;
+            const speakText = `${n1Str} タス ${n2Str} ワ`;
+            const uttr = new SpeechSynthesisUtterance(speakText);
+            uttr.lang = 'ja-JP';
+            uttr.rate = 1.1;
+            uttr.pitch = 1.2;
+            uttr.volume = 1.0;
+            window.speechSynthesis.speak(uttr);
+        }
+
+        function speakAddAnswer(answer) {
+            if (!('speechSynthesis' in window)) return;
+
+            const speakText = NUM_SPEAK[answer] || `${answer}`;
+            const uttr = new SpeechSynthesisUtterance(speakText);
+            uttr.lang = 'ja-JP';
+            uttr.rate = 1.1;
+            uttr.pitch = 1.2;
+            uttr.volume = 1.0;
+
+            setTimeout(() => {
+                window.speechSynthesis.speak(uttr);
+            }, 200);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.classList.remove('hidden', '-translate-y-2', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('-translate-y-2', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 2500);
+        }
+
+        function renderStages() {
+            const grid = document.getElementById('stages-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            LEVELS_INFO.forEach((info) => {
+                const lvl = info.level;
+                const isUnlocked = gameState.unlockedLevels.includes(lvl);
+                const rank = gameState.clearedRanks[lvl];
+
+                const btn = document.createElement('button');
+                const spanCol = (lvl === 5) ? 'sm:col-span-2' : '';
+
+                let bgStyle = "bg-slate-800/80 border-slate-700 text-slate-500 opacity-60 cursor-not-allowed";
+                let badgeHtml = "";
+
+                if (isUnlocked) {
+                    if (rank === 'gold') {
+                        bgStyle = "bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 text-slate-900 border-amber-200 gold-glow btn-3d";
+                        badgeHtml = `<span class="text-xs font-black whitespace-nowrap">🥇金</span>`;
+                    } else if (rank === 'silver') {
+                        bgStyle = "bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 text-slate-900 border-slate-100 btn-3d shadow-lg";
+                        badgeHtml = `<span class="text-xs font-black whitespace-nowrap">🥈銀</span>`;
+                    } else if (rank === 'bronze') {
+                        bgStyle = "bg-gradient-to-br from-amber-700 via-amber-600 to-amber-800 text-amber-100 border-amber-500 btn-3d shadow-lg";
+                        badgeHtml = `<span class="text-xs font-black whitespace-nowrap">🥉銅</span>`;
+                    } else {
+                        bgStyle = "bg-gradient-to-br from-indigo-600 to-blue-700 hover:from-indigo-500 hover:to-blue-600 text-white border-indigo-400 btn-3d shadow-lg";
+                        badgeHtml = `<span class="text-[11px] font-bold text-indigo-200 whitespace-nowrap">トライ</span>`;
+                    }
+                }
+
+                btn.className = `${spanCol} p-3.5 rounded-2xl border-2 flex items-center justify-between px-5 font-black transition-all ${bgStyle}`;
+                btn.innerHTML = `
+                    <div class="text-left">
+                        <div class="text-xl sm:text-2xl leading-tight">${info.title}</div>
+                        <div class="text-xs font-bold opacity-90">${info.desc}（カード${info.rewardCount}枚）</div>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0 ml-2">
+                        ${isUnlocked ? badgeHtml : '<i data-lucide="lock" class="w-5 h-5 text-slate-500"></i>'}
+                    </div>
+                `;
+
+                if (isUnlocked) {
+                    btn.onclick = () => startStage(lvl);
+                } else {
+                    btn.onclick = () => {
+                        showToast(`🔒 レベル${lvl - 1}を クリアすると 開放されるよ！`);
+                        playBuzzer();
+                    };
+                }
+
+                grid.appendChild(btn);
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function showStageSelect() {
+            stopBGM();
+            hideAllScreens();
+            document.getElementById('stage-select-screen').classList.remove('hidden');
+            renderStages();
+        }
+
+        function hideAllScreens() {
+            ['stage-select-screen', 'game-screen', 'clear-screen', 'album-screen', 'gameover-modal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+        }
+
+        function startStage(levelNum) {
+            currentStageNumber = levelNum;
+            gameState.currentLevel = levelNum;
+            gameState.lives = 3;
+            gameState.currentQuestionIndex = 0;
+            gameState.currentMonsterIndex = 0;
+            gameState.questions = generateQuestions(levelNum);
+
+            hideAllScreens();
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            const info = LEVELS_INFO.find(l => l.level === levelNum) || LEVELS_INFO[0];
+            document.getElementById('current-stage-title').innerText = info.title;
+            document.getElementById('current-round-tag').innerText = info.desc;
+
+            // バトルエリア表示の復元
+            const targetBox = document.getElementById('target-pokemon-scale-box');
+            if (targetBox) {
+                targetBox.classList.remove('opacity-0', 'scale-0');
+            }
+            const hit = document.getElementById('hit-explosion');
+            if (hit) {
+                hit.innerHTML = '<div class="text-3xl animate-ping">💥</div>';
+                hit.classList.add('hidden');
+            }
+            const stars = document.getElementById('capture-stars');
+            if (stars) stars.classList.add('hidden');
+
+            updateHeartsUI();
+            updateMasterGaugeUI();
+            renderMonsterSvg();
+            showQuestion();
+            startBGM();
+        }
+
+        // 出題順をランダムにし、同じ問題が連続しないように並び替える
+        function shuffleQuestions(list) {
+            const arr = [...list];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            for (let i = 1; i < arr.length; i++) {
+                if (arr[i].num1 === arr[i - 1].num1 && arr[i].num2 === arr[i - 1].num2) {
+                    for (let j = i + 1; j < arr.length; j++) {
+                        if (arr[j].num1 !== arr[i - 1].num1 || arr[j].num2 !== arr[i - 1].num2) {
+                            [arr[i], arr[j]] = [arr[j], arr[i]];
+                            break;
+                        }
+                    }
+                }
+            }
+            return arr;
+        }
+
+        // レベル別問題生成プール取得
+        function getPoolForLevel(level) {
+            const pool = [];
+            if (level === 1) {
+                // 答えが5以下で0を含まない足し算
+                for (let a = 1; a <= 4; a++) {
+                    for (let b = 1; b <= 4; b++) {
+                        if (a + b <= 5) {
+                            pool.push({ num1: a, num2: b, answer: a + b });
+                        }
+                    }
+                }
+            } else if (level === 2) {
+                // 答えが必ず6以上10以下の足し算（各項に0が入る問題は出さない）
+                for (let a = 1; a <= 9; a++) {
+                    for (let b = 1; b <= 9; b++) {
+                        if (a + b >= 6 && a + b <= 10) {
+                            pool.push({ num1: a, num2: b, answer: a + b });
+                        }
+                    }
+                }
+            } else if (level === 3) {
+                // 「10いくつ＋1桁＝10いくつ」または「1桁＋10いくつ＝10いくつ」（答え11以上、0なし）
+                for (let a = 11; a <= 18; a++) {
+                    for (let b = 1; b <= 8; b++) {
+                        if (a + b <= 19) {
+                            pool.push({ num1: a, num2: b, answer: a + b });
+                        }
+                    }
+                }
+                for (let a = 1; a <= 8; a++) {
+                    for (let b = 11; b <= 18; b++) {
+                        if (a + b <= 19) {
+                            pool.push({ num1: a, num2: b, answer: a + b });
+                        }
+                    }
+                }
+            } else if (level === 4) {
+                // 繰り上がる足し算（答えが10になる問題は出さない＝11以上、0なし）
+                for (let a = 1; a <= 9; a++) {
+                    for (let b = 1; b <= 9; b++) {
+                        if (a + b >= 11) {
+                            pool.push({ num1: a, num2: b, answer: a + b });
+                        }
+                    }
+                }
+            }
+            return pool;
+        }
+
+        function generateQuestions(level) {
+            if (level === 1) {
+                // 答えが0になる問題が1問
+                const qZeroAns = { num1: 0, num2: 0, answer: 0 };
+
+                // 足す数または足される数が0の問題が1問（答えが0を除く）
+                const oneZeroPool = [];
+                for (let n = 1; n <= 5; n++) {
+                    oneZeroPool.push({ num1: 0, num2: n, answer: n });
+                    oneZeroPool.push({ num1: n, num2: 0, answer: n });
+                }
+                const qOneZero = oneZeroPool[Math.floor(Math.random() * oneZeroPool.length)];
+
+                // 残りの8問（答えが5以下で0を含まない足し算）
+                const restPool = shuffleQuestions(getPoolForLevel(1)).slice(0, 8);
+
+                return shuffleQuestions([qZeroAns, qOneZero, ...restPool]);
+            }
+
+            if (level === 2) {
+                // 答えが必ず6以上の数（10問）
+                const pool = shuffleQuestions(getPoolForLevel(2));
+                return shuffleQuestions(pool.slice(0, 10));
+            }
+
+            if (level === 3) {
+                // 答えが11以上の数（10問・答えが10になる問題は出さない）
+                const pool = shuffleQuestions(getPoolForLevel(3));
+                return shuffleQuestions(pool.slice(0, 10));
+            }
+
+            if (level === 4) {
+                // 答えが10になる問題は出さない（10問）
+                const pool = shuffleQuestions(getPoolForLevel(4));
+                return shuffleQuestions(pool.slice(0, 10));
+            }
+
+            if (level === 5) {
+                // レベル2から1問、レベル3から2問、レベル4から7問出題
+                const q2 = shuffleQuestions(getPoolForLevel(2)).slice(0, 1);
+
+                // レベル3の出題ルールから生成した問題のうち、レベル2と被らないものから2問選出
+                const l3Candidates = generateQuestions(3).filter(
+                    item => !q2.some(existing => existing.num1 === item.num1 && existing.num2 === item.num2)
+                );
+                const q3 = shuffleQuestions(l3Candidates).slice(0, 2);
+
+                const q4 = shuffleQuestions(getPoolForLevel(4)).slice(0, 7);
+
+                return shuffleQuestions([...q2, ...q3, ...q4]);
+            }
+
+            const pool = getPoolForLevel(level);
+            return shuffleQuestions(pool).slice(0, 10);
+        }
+
+        function updateHeartsUI() {
+            const container = document.getElementById('hearts-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const totalHearts = 3;
+
+            for (let i = 0; i < totalHearts; i++) {
+                const heart = document.createElement('i');
+                heart.setAttribute('data-lucide', 'heart');
+                if (i < gameState.lives) {
+                    heart.className = "w-6 h-6 text-red-500 fill-red-500";
+                } else {
+                    heart.className = "w-6 h-6 text-slate-600 fill-slate-700 opacity-40";
+                }
+                container.appendChild(heart);
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // 残り問題数 10連四角ゲージUI制御（全レベル共通）
+        function updateMasterGaugeUI() {
+            const container = document.getElementById('master-gauge-container');
+            const boxesContainer = document.getElementById('master-gauge-boxes');
+            if (!container || !boxesContainer) return;
+
+            container.classList.remove('hidden');
+            boxesContainer.innerHTML = '';
+
+            const totalQ = gameState.questions.length || 10;
+            const remaining = Math.max(0, totalQ - gameState.currentQuestionIndex);
+
+            for (let i = 0; i < totalQ; i++) {
+                const box = document.createElement('div');
+                if (i < remaining) {
+                    box.className = "flex-1 h-3.5 sm:h-4 rounded-md bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 border border-white shadow-sm transition-all duration-300";
+                } else {
+                    box.className = "flex-1 h-3.5 sm:h-4 rounded-md bg-slate-800/80 border border-slate-700/60 opacity-20 transition-all duration-300";
+                }
+                boxesContainer.appendChild(box);
+            }
+        }
+
+        let lastCarColorIdx = -1;
+        let lastCarTypeIdx = -1;
+
+        function renderMonsterSvg() {
+            const box = document.getElementById('pixel-monster-svg-box');
+            if (!box) return;
+
+            const totalQ = gameState.questions.length || 10;
+            const progress = gameState.currentQuestionIndex / totalQ;
+            const scaleBox = document.getElementById('target-pokemon-scale-box');
+            if (scaleBox) {
+                const scale = Math.max(0.4, 2.4 - (progress * 1.9));
+                scaleBox.style.transform = `scale(${scale})`;
+            }
+
+            const carColors = [
+                { body: '#ef4444', stripe: '#fef08a' }, // 赤
+                { body: '#3b82f6', stripe: '#ffffff' }, // 青
+                { body: '#f59e0b', stripe: '#ffffff' }, // オレンジ
+                { body: '#10b981', stripe: '#fef08a' }, // 緑
+                { body: '#a855f7', stripe: '#fef08a' }, // 紫
+                { body: '#ec4899', stripe: '#ffffff' }, // ピンク
+                { body: '#06b6d4', stripe: '#fef08a' }, // 水色
+                { body: '#eab308', stripe: '#1e293b' }  // 黄色
+            ];
+
+            let colorIdx = Math.floor(Math.random() * carColors.length);
+            if (colorIdx === lastCarColorIdx) {
+                colorIdx = (colorIdx + 1) % carColors.length;
+            }
+            lastCarColorIdx = colorIdx;
+            const color = carColors[colorIdx];
+
+            const carTypes = [
+                // 0: セダン（乗用車）
+                `
+                    <path d="M3 22 L4 16 L10 15 L14 9 L25 9 L28 15 L30 17 L30 22 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <path d="M11 15 L14.5 10.5 L19 10.5 L19 15 Z" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+                    <path d="M20.5 10.5 L24.2 10.5 L26.5 15 L20.5 15 Z" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+                    <rect x="4" y="18" width="25" height="1.5" fill="${color.stripe}"/>
+                    <rect x="3" y="17" width="2" height="2.5" rx="0.5" fill="#fef08a" stroke="#0f172a" stroke-width="0.6"/>
+                    <circle cx="9.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                    <circle cx="23.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="23.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                `,
+                // 1: スポーツカー（リアウイング付き）
+                `
+                    <path d="M27 15 L30 11 L27 11" stroke="${color.stripe}" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                    <path d="M2 22 L4 17 L12 16 L16 11 L25 11 L29 16 L31 18 L31 22 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <path d="M13 16 L16.5 12.2 L23.5 12.2 L26.5 16 Z" fill="#0f172a"/>
+                    <rect x="3" y="18.5" width="27" height="1.4" fill="${color.stripe}"/>
+                    <circle cx="9" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9" cy="22.5" r="1.6" fill="#facc15"/>
+                    <circle cx="24" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="24" cy="22.5" r="1.6" fill="#facc15"/>
+                `,
+                // 2: ミニバン・ワゴン
+                `
+                    <path d="M3 22 L4 15 L9 8 L28 8 L29 15 L30 22 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <rect x="10" y="10" width="7" height="5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="18.5" y="10" width="8" height="5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="4" y="17.5" width="25" height="1.5" fill="${color.stripe}"/>
+                    <circle cx="9.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                    <circle cx="23.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="23.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                `,
+                // 3: トラック
+                `
+                    <path d="M3 22 L3 14 L8 9 L13 9 L13 22 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <rect x="5" y="11" width="6" height="4.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="13" y="7" width="17" height="15" rx="1" fill="${color.stripe}" stroke="#0f172a" stroke-width="1.2"/>
+                    <rect x="15" y="11" width="13" height="3" fill="${color.body}"/>
+                    <circle cx="8.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="8.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                    <circle cx="24" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="24" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                `,
+                // 4: バス
+                `
+                    <rect x="3" y="8" width="26" height="14" rx="2.5" fill="${color.body}" stroke="#0f172a" stroke-width="1.2"/>
+                    <rect x="5" y="10.5" width="4.5" height="4.5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="11" y="10.5" width="4.5" height="4.5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="17" y="10.5" width="4.5" height="4.5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="23" y="10.5" width="4" height="4.5" rx="0.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="3" y="17" width="26" height="1.8" fill="${color.stripe}"/>
+                    <circle cx="9.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                    <circle cx="23.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="23.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                `,
+                // 5: SUV・ジープ（大きめタイヤ＋背面タイヤ）
+                `
+                    <rect x="28" y="11" width="2.5" height="6" rx="1" fill="#1e293b" stroke="#0f172a" stroke-width="0.8"/>
+                    <path d="M3 21 L4 14 L10 14 L12 8 L27 8 L28 14 L28 21 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <rect x="13" y="10" width="6" height="4.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="20.5" y="10" width="5.5" height="4.5" fill="#bae6fd" stroke="#0f172a" stroke-width="0.8"/>
+                    <rect x="4" y="16.5" width="24" height="1.5" fill="${color.stripe}"/>
+                    <circle cx="9.5" cy="22" r="4.4" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9.5" cy="22" r="1.8" fill="#e2e8f0"/>
+                    <circle cx="23.5" cy="22" r="4.4" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="23.5" cy="22" r="1.8" fill="#e2e8f0"/>
+                `,
+                // 6: オープンカー
+                `
+                    <path d="M11 16 L14 11 L15.5 11 L13.5 16 Z" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+                    <path d="M3 22 L4 16 L27 15 L30 18 L30 22 Z" fill="${color.body}" stroke="#0f172a" stroke-width="1.2" stroke-linejoin="round"/>
+                    <rect x="4" y="18" width="25" height="1.5" fill="${color.stripe}"/>
+                    <circle cx="9.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="9.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                    <circle cx="23.5" cy="22.5" r="3.8" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    <circle cx="23.5" cy="22.5" r="1.6" fill="#e2e8f0"/>
+                `
+            ];
+
+            let typeIdx = Math.floor(Math.random() * carTypes.length);
+            if (typeIdx === lastCarTypeIdx) {
+                typeIdx = (typeIdx + 1) % carTypes.length;
+            }
+            lastCarTypeIdx = typeIdx;
+
+            box.innerHTML = `
+                <svg class="w-16 h-16 pixelated filter drop-shadow-xl select-none" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    ${carTypes[typeIdx]}
+                </svg>
+            `;
+        }
+
+        function showQuestion() {
+            isProcessingAnswer = false;
+            const q = gameState.questions[gameState.currentQuestionIndex];
+            if (!q) return;
+
+            document.getElementById('question-text').innerText = `${q.num1} ＋ ${q.num2}`;
+
+            const yomi1 = NUM_YOMI[q.num1] || `${q.num1}`;
+            const yomi2 = NUM_YOMI[q.num2] || `${q.num2}`;
+            document.getElementById('yomi-text').innerText = `${yomi1} たす ${yomi2} は`;
+
+            speakAddQuestion(q.num1, q.num2);
+
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            const shuffled = generateSmartOptions(q);
+
+            shuffled.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = "w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-indigo-600 via-blue-500 to-cyan-400 border-4 border-white text-white text-xl sm:text-2xl font-black shadow-xl btn-3d flex items-center justify-center hover:scale-105 transition-transform";
+                btn.innerText = ans;
+                btn.onclick = () => checkAnswer(ans, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function generateSmartOptions(q) {
+            const num1 = q.num1;
+            const num2 = q.num2;
+            const answer = q.answer;
+
+            const candidates = new Set();
+
+            // 近い数値の誤答候補
+            [answer - 1, answer + 1, answer - 2, answer + 2, answer + 3, answer - 3].forEach(val => {
+                if (val >= 0 && val <= 20 && val !== answer) {
+                    candidates.add(val);
+                }
+            });
+
+            // 引き算や桁間違いなどの誤答候補
+            [Math.abs(num1 - num2), answer + 10, answer - 10].forEach(val => {
+                if (val >= 0 && val <= 20 && val !== answer) {
+                    candidates.add(val);
+                }
+            });
+
+            // 0〜20の数値から補充
+            for (let v = 0; v <= 20; v++) {
+                if (v !== answer) candidates.add(v);
+            }
+
+            const sortedCandidates = Array.from(candidates).sort((a, b) => Math.abs(a - answer) - Math.abs(b - answer));
+            const topPool = sortedCandidates.slice(0, Math.min(6, sortedCandidates.length));
+            topPool.sort(() => Math.random() - 0.5);
+
+            const wrongOptions = topPool.slice(0, 3);
+            const result = [answer, ...wrongOptions];
+
+            return result.sort(() => Math.random() - 0.5);
+        }
+
+        function checkAnswer(selectedAns, btn) {
+            if (isProcessingAnswer) return;
+            const q = gameState.questions[gameState.currentQuestionIndex];
+            if (!q) return;
+
+            if (selectedAns === q.answer) {
+                isProcessingAnswer = true;
+                playPinpon();
+                speakAddAnswer(q.answer);
+
+                btn.classList.remove('from-indigo-600', 'via-blue-500', 'to-cyan-400');
+                btn.classList.add('from-emerald-400', 'to-teal-500', 'scale-110');
+
+                const isFinalQuestion = (gameState.currentQuestionIndex + 1 >= gameState.questions.length);
+
+                if (!isFinalQuestion) {
+                    // 途中問題：ハート攻撃
+                    const missile = document.getElementById('missile-anim');
+                    if (missile) {
+                        missile.classList.remove('hidden');
+                        missile.classList.add('animate-fly-missile');
+                        setTimeout(() => {
+                            missile.classList.add('hidden');
+                            missile.classList.remove('animate-fly-missile');
+                            
+                            const hit = document.getElementById('hit-explosion');
+                            if (hit) {
+                                hit.classList.remove('hidden');
+                                setTimeout(() => hit.classList.add('hidden'), 350);
+                            }
+                        }, 400);
+                    }
+
+                    setTimeout(() => {
+                        gameState.currentQuestionIndex++;
+                        updateMasterGaugeUI();
+                        renderMonsterSvg();
+                        showQuestion();
+                    }, 1200);
+                } else {
+                    // 最終問題：車のクリア演出アニメーション
+                    gameState.currentQuestionIndex++;
+                    updateMasterGaugeUI();
+
+                    const targetBox = document.getElementById('target-pokemon-scale-box');
+                    const stars = document.getElementById('capture-stars');
+                    const hit = document.getElementById('hit-explosion');
+
+                    setTimeout(() => {
+                        if (hit) {
+                            hit.innerHTML = '<div class="text-5xl animate-ping">✨</div>';
+                            hit.classList.remove('hidden');
+                        }
+
+                        if (stars) {
+                            stars.innerText = '✨ FLASH! ✨';
+                            stars.classList.remove('hidden');
+                        }
+
+                        setTimeout(() => {
+                            if (targetBox) {
+                                targetBox.classList.add('opacity-0', 'scale-0', 'transition-all', 'duration-500');
+                            }
+                        }, 300);
+
+                        setTimeout(() => {
+                            if (hit) hit.classList.add('hidden');
+                            handleStageClear();
+                        }, 1600);
+
+                    }, 300);
+                }
+
+            } else {
+                playBuzzer();
+                btn.classList.add('animate-shake', 'from-rose-600', 'to-red-700');
+                setTimeout(() => btn.classList.remove('animate-shake'), 400);
+
+                gameState.lives--;
+                updateHeartsUI();
+
+                if (gameState.lives <= 0) {
+                    stopBGM();
+                    document.getElementById('gameover-modal').classList.remove('hidden');
+                }
+            }
+        }
+
+        function handleStageClear() {
+            stopBGM();
+
+            const level = gameState.currentLevel;
+            const info = LEVELS_INFO.find(l => l.level === level) || LEVELS_INFO[0];
+
+            let rank = 'bronze';
+            if (gameState.lives === 3) rank = 'gold';
+            else if (gameState.lives === 2) rank = 'silver';
+
+            const currentRank = gameState.clearedRanks[level];
+            const rankWeight = { gold: 3, silver: 2, bronze: 1 };
+            if (!currentRank || rankWeight[rank] > (rankWeight[currentRank] || 0)) {
+                gameState.clearedRanks[level] = rank;
+            }
+
+            // 次のレベル開放
+            if (level < 5) {
+                const nextLevel = level + 1;
+                if (!gameState.unlockedLevels.includes(nextLevel)) {
+                    gameState.unlockedLevels.push(nextLevel);
+                }
+            }
+
+            const prevOwnedCount = gameState.ownedCards.length;
+            const prev20Done = isFirst20Complete();
+            const prev40Done = isFirst40Complete();
+
+            // レベルに応じた枚数（1〜5枚）のカードを重複なしで選出
+            const rewardedCards = [];
+            for (let i = 0; i < info.rewardCount; i++) {
+                const alreadyDrawnIds = rewardedCards.map(c => c.id);
+                const card = drawCardForLevel(level, alreadyDrawnIds);
+                if (card) {
+                    rewardedCards.push(card);
+                    if (!gameState.ownedCards.includes(card.id)) {
+                        gameState.ownedCards.push(card.id);
+                        if (!gameState.newCards.includes(card.id)) {
+                            gameState.newCards.push(card.id);
+                        }
+                    }
+                }
+            }
+
+            saveData();
+
+            const currentOwnedCount = gameState.ownedCards.length;
+            const current20Done = isFirst20Complete();
+            const current40Done = isFirst40Complete();
+
+            const clearBadge = document.getElementById('clear-badge');
+            if (rank === 'gold') {
+                clearBadge.innerText = '🥇 PERFECT GOLD!';
+                clearBadge.className = 'inline-block px-4 py-1 rounded-full text-xs font-black bg-amber-400 text-slate-900 shadow gold-glow';
+            } else if (rank === 'silver') {
+                clearBadge.innerText = '🥈 SILVER CLEAR';
+                clearBadge.className = 'inline-block px-4 py-1 rounded-full text-xs font-black bg-slate-300 text-slate-900 shadow';
+            } else {
+                clearBadge.innerText = '🥉 BRONZE CLEAR';
+                clearBadge.className = 'inline-block px-4 py-1 rounded-full text-xs font-black bg-amber-700 text-white shadow';
+            }
+
+            document.getElementById('clear-title').innerText = `${info.title} クリア！`;
+            document.getElementById('clear-subtitle').innerText = `のりものカードを ${info.rewardCount}まい ゲットしたよ！`;
+
+            const banner = document.getElementById('world-clear-banner');
+            const reached20 = !prev20Done && current20Done;
+            const reached40 = !prev40Done && current40Done;
+            const reached60 = (prevOwnedCount < 60) && (currentOwnedCount === 60);
+            const isAlwaysCelebrate = (currentOwnedCount === 60);
+
+            if (reached60) {
+                banner.innerText = '👑 カード図鑑 60種コンプリート達成！！ 👑';
+                banner.classList.remove('hidden');
+                launchCelebration(true, true);
+                playCompleteFanfare();
+            } else if (reached40) {
+                banner.innerText = '✨ 40種コンプリート！全60種が開放されたよ！！ ✨';
+                banner.classList.remove('hidden');
+                launchCelebration(false, true);
+                playFanfare(true);
+            } else if (reached20) {
+                banner.innerText = '✨ 20種コンプリート！40種まで開放されたよ！！ ✨';
+                banner.classList.remove('hidden');
+                launchCelebration(false, true);
+                playFanfare(true);
+            } else if (isAlwaysCelebrate) {
+                banner.innerText = '👑 図鑑コンプリート中！ 👑';
+                banner.classList.remove('hidden');
+                launchCelebration(false, false);
+                playFanfare(false);
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            const cardBox = document.getElementById('reward-card-container');
+            if (cardBox) {
+                cardBox.innerHTML = rewardedCards.map(c => `
+                    <div class="transform hover:scale-105 transition-transform duration-300 cursor-pointer" onclick='showCardModalById("${c.id}")'>
+                        ${createCardHtml(c, false, rewardedCards.length >= 3)}
+                    </div>
+                `).join('');
+            }
+
+            hideAllScreens();
+            document.getElementById('clear-screen').classList.remove('hidden');
+        }
+
+        // レベルと図鑑開放状況に応じた1枚抽選ロジック（重複せず必ずNEWカードを引く）
+        function drawCardForLevel(level, alreadyDrawnIds = []) {
+            const info = LEVELS_INFO.find(l => l.level === level) || LEVELS_INFO[0];
+            const globalLimit = getGlobalCardLimit(); // 20 -> 40 -> 60
+            const effectiveLimit = Math.min(globalLimit, info.maxPool);
+
+            // 現在のレベル範囲内の未所持・未排出カードを抽出
+            const poolInLevel = POKEMON_CARDS.slice(0, effectiveLimit);
+            const unownedInLevel = poolInLevel.filter(
+                c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
+            );
+            if (unownedInLevel.length > 0) {
+                return pickWeightedCard(unownedInLevel, level);
+            }
+
+            // レベル範囲内がすべて所持済みの場合は、現在の図鑑上限（20/40/60）内の未所持カードを抽出
+            const poolInGlobal = POKEMON_CARDS.slice(0, globalLimit);
+            const unownedInGlobal = poolInGlobal.filter(
+                c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
+            );
+            if (unownedInGlobal.length > 0) {
+                return pickWeightedCard(unownedInGlobal, level);
+            }
+
+            // 全60種の中で未所持カードが残っている場合
+            const unownedAll = POKEMON_CARDS.filter(
+                c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
+            );
+            if (unownedAll.length > 0) {
+                return pickWeightedCard(unownedAll, level);
+            }
+
+            // 全60種コンプリート済みの場合はランダム抽選
+            return pickWeightedCard(poolInLevel, level);
+        }
+
+        function handleNextStep() {
+            if (gameState.currentLevel < 5) {
+                startStage(gameState.currentLevel + 1);
+            } else {
+                showStageSelect();
+            }
+        }
+
+        function retryCurrentStage() {
+            startStage(gameState.currentLevel);
+        }
+
+        function createCardHtml(card, isModal = false, isCompact = false) {
+            const isNew = gameState.newCards.includes(card.id);
+            let scaleClass = 'w-48 h-72';
+            if (isModal) scaleClass = 'w-56 h-80';
+            else if (isCompact) scaleClass = 'w-36 h-56 sm:w-40 sm:h-60';
+
+            // C, U, R, RR はホログラムなし。AR, SR, SAR, UR, MUR のみホログラム対象
+            const isFoilRarity = ['AR', 'SR', 'SAR', 'UR', 'MUR'].includes(card.rarity);
+            let extraEffectClass = isFoilRarity ? 'card-foil' : '';
+            let borderStyle = 'border-amber-500/80';
+
+            if (card.rarity === 'MUR') {
+                extraEffectClass = 'card-foil animate-rainbow-glow';
+                borderStyle = 'border-yellow-200';
+            } else if (card.rarity === 'UR') {
+                extraEffectClass = 'card-foil';
+                borderStyle = 'border-yellow-400 gold-glow';
+            } else if (card.rarity === 'SAR' || card.rarity === 'SR') {
+                extraEffectClass = 'card-foil';
+                borderStyle = 'border-pink-300 super-glow';
+            }
+
+            // モーダル表示時はカード名称を省略（truncate）せずに全文表示
+            const nameClass = isModal 
+                ? 'text-sm sm:text-base tracking-wide text-amber-200 drop-shadow-md leading-tight break-words font-black text-center w-full' 
+                : (isCompact
+                    ? 'text-[11px] sm:text-xs tracking-wide truncate w-full text-center drop-shadow-md text-amber-200 font-black'
+                    : 'text-xs sm:text-sm tracking-wide truncate w-full text-center drop-shadow-md text-amber-200 font-black');
+
+            const illusBgClass = 'bg-stone-950/70 border-white/20 shadow-inner';
+            const illusHeightClass = isCompact ? 'h-20 sm:h-24' : 'h-28 sm:h-32';
+            const descTextClass = isModal
+                ? 'text-xs leading-relaxed text-amber-100/95 font-bold'
+                : (isCompact
+                    ? 'text-[9px] leading-tight text-amber-100/95 font-bold'
+                    : 'text-[10px] sm:text-[11px] leading-snug text-amber-100/95 font-bold');
+
+            return `
+                <div class="relative ${scaleClass} rounded-2xl p-2 bg-gradient-to-b ${card.bgTone} border-4 ${borderStyle} shadow-2xl flex flex-col justify-between ${extraEffectClass} text-white overflow-hidden select-none">
+                    
+                    ${isNew ? `
+                        <div class="absolute top-1 right-1 z-50 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full border-2 border-white shadow-xl animate-bounce">
+                            NEW!
+                        </div>
+                    ` : ''}
+
+                    <!-- 一番上：乗り物の名前 -->
+                    <div class="flex justify-center items-center z-10 font-black border-b border-white/20 pb-1 min-h-[26px]">
+                        <span class="${nameClass}">${card.name}</span>
+                    </div>
+
+                    <!-- その下：イラスト -->
+                    <div class="my-1.5 ${illusHeightClass} rounded-xl ${illusBgClass} border flex items-center justify-center relative overflow-hidden shadow-inner shrink-0">
+                        ${getVehicleSvgIllustration(card, isCompact)}
+                    </div>
+
+                    <!-- その下：乗り物の特徴や値段などの説明 -->
+                    <div class="bg-stone-950/85 rounded-xl p-1.5 border border-white/10 z-10 flex-1 flex items-center">
+                        <p class="${descTextClass}">${card.desc}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 60種類の乗り物SVGイラスト描画
+        function getVehicleSvgIllustration(card, isCompact = false) {
+            const c = card.accentColor || '#38bdf8';
+            const sizeClass = isCompact ? 'w-24 h-16' : 'w-32 h-20';
+            let bodySvg = '';
+
+            switch (card.svgId) {
+                // --- 1. 子どもの乗り物（10種） ---
+                case 'tricycle':
+                    bodySvg = `
+                        <path d="M22 14 L26 28 M26 14 L38 26 L44 26" stroke="${c}" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M18 13 L26 13" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round"/>
+                        <rect x="33" y="18" width="8" height="3" rx="1.5" fill="#facc15"/>
+                        <circle cx="20" cy="31" r="8" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5"/>
+                        <circle cx="20" cy="31" r="3" fill="${c}"/>
+                        <circle cx="44" cy="33" r="6" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5"/>
+                        <circle cx="44" cy="33" r="2" fill="${c}"/>
+                    `;
+                    break;
+                case 'kids_bike':
+                    bodySvg = `
+                        <path d="M18 30 L27 18 L39 18 L45 30 M27 18 L31 30 L45 30" stroke="${c}" stroke-width="2.6" stroke-linejoin="round" fill="none"/>
+                        <path d="M23 13 L30 13 M37 14 L42 14" stroke="#f8fafc" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="18" cy="30" r="7.5" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                        <circle cx="45" cy="30" r="7.5" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                        <circle cx="49" cy="34" r="3" fill="#facc15" stroke="#0f172a" stroke-width="1"/>
+                    `;
+                    break;
+                case 'kickboard':
+                    bodySvg = `
+                        <path d="M20 33 L44 33 L47 12 L42 12" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <rect x="21" y="30" width="21" height="3" rx="1.5" fill="#facc15"/>
+                        <circle cx="19" cy="35" r="4" fill="#1e293b" stroke="#f8fafc" stroke-width="1.2"/>
+                        <circle cx="45" cy="35" r="4" fill="#1e293b" stroke="#f8fafc" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'battery_car':
+                    bodySvg = `
+                        <path d="M12 29 L15 20 L26 19 L34 14 L45 19 L52 21 L52 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M27 19 L33 15 L42 19 Z" fill="#bae6fd"/>
+                        <circle cx="20" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="14" cy="24" r="2" fill="#fef08a"/>
+                    `;
+                    break;
+                case 'gokart':
+                    bodySvg = `
+                        <path d="M10 29 L16 23 L28 23 L34 17 L44 17 L52 24 L54 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M35 17 L35 11 L43 11 L43 17" stroke="#facc15" stroke-width="2" fill="none"/>
+                        <circle cx="18" cy="30" r="5.5" fill="#0f172a" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="46" cy="30" r="6" fill="#0f172a" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'coffeecup':
+                    bodySvg = `
+                        <ellipse cx="32" cy="36" rx="22" ry="3.5" fill="#64748b" stroke="#fff" stroke-width="1"/>
+                        <path d="M18 18 L46 18 L42 33 Q32 36 22 33 Z" fill="${c}" stroke="#fff" stroke-width="1.4"/>
+                        <path d="M45 20 C52 20 52 29 43 29" stroke="#facc15" stroke-width="3" fill="none"/>
+                        <ellipse cx="32" cy="18" rx="14" ry="2.5" fill="#fef08a"/>
+                    `;
+                    break;
+                case 'merrygoround':
+                    bodySvg = `
+                        <polygon points="10,14 32,4 54,14" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="12" y="14" width="40" height="3" fill="#facc15"/>
+                        <line x1="22" y1="17" x2="22" y2="35" stroke="#fde047" stroke-width="2"/>
+                        <line x1="42" y1="17" x2="42" y2="35" stroke="#fde047" stroke-width="2"/>
+                        <ellipse cx="22" cy="25" rx="6" ry="3.5" fill="#fff"/>
+                        <circle cx="17" cy="22" r="2.5" fill="#fff"/>
+                        <ellipse cx="42" cy="27" rx="6" ry="3.5" fill="#fbcfe8"/>
+                        <circle cx="37" cy="24" r="2.5" fill="#fbcfe8"/>
+                        <rect x="10" y="35" width="44" height="4" rx="1" fill="#ec4899"/>
+                    `;
+                    break;
+                case 'minisl':
+                    bodySvg = `
+                        <rect x="14" y="21" width="24" height="10" rx="2" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                        <rect x="34" y="13" width="14" height="18" rx="1" fill="${c}" stroke="#fff" stroke-width="1"/>
+                        <rect x="37" y="16" width="8" height="6" fill="#bae6fd"/>
+                        <rect x="18" y="13" width="4" height="8" fill="#facc15"/>
+                        <circle cx="15" cy="8" r="3" fill="#e2e8f0" opacity="0.8"/>
+                        <circle cx="10" cy="6" r="2.2" fill="#e2e8f0" opacity="0.6"/>
+                        <circle cx="20" cy="33" r="4" fill="#ef4444" stroke="#fff" stroke-width="1"/>
+                        <circle cx="30" cy="33" r="4" fill="#ef4444" stroke="#fff" stroke-width="1"/>
+                        <circle cx="42" cy="33" r="4.5" fill="#ef4444" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+                case 'ferriswheel':
+                    bodySvg = `
+                        <circle cx="32" cy="20" r="15" fill="none" stroke="${c}" stroke-width="2.5"/>
+                        <circle cx="32" cy="20" r="9" fill="none" stroke="#fde047" stroke-width="1.2"/>
+                        <path d="M20 39 L32 20 L44 39" stroke="#e2e8f0" stroke-width="2.5" fill="none"/>
+                        <rect x="30" y="3" width="4" height="4" rx="1" fill="#facc15"/>
+                        <rect x="15" y="18" width="4" height="4" rx="1" fill="#38bdf8"/>
+                        <rect x="45" y="18" width="4" height="4" rx="1" fill="#4ade80"/>
+                        <rect x="30" y="33" width="4" height="4" rx="1" fill="#fb7185"/>
+                    `;
+                    break;
+                case 'rollercoaster':
+                    bodySvg = `
+                        <path d="M4 34 Q18 6 32 24 T60 12" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+                        <path d="M18 17 L18 38 M32 24 L32 38 M48 16 L48 38" stroke="#64748b" stroke-width="1.5"/>
+                        <rect x="16" y="12" width="10" height="5" rx="2" transform="rotate(-15 21 14)" fill="${c}" stroke="#fff" stroke-width="1"/>
+                        <rect x="27" y="15" width="10" height="5" rx="2" transform="rotate(15 32 17)" fill="#facc15" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+
+                // --- 2. 空を飛ぶ乗り物（10種） ---
+                case 'balloon':
+                    bodySvg = `
+                        <path d="M32 3 C20 3 16 14 23 25 L41 25 C48 14 44 3 32 3 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M32 3 C26 3 25 14 28 25 L36 25 C39 14 38 3 32 3 Z" fill="#fef08a" opacity="0.85"/>
+                        <line x1="26" y1="25" x2="28" y2="31" stroke="#fff" stroke-width="1.2"/>
+                        <line x1="38" y1="25" x2="36" y2="31" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="27" y="31" width="10" height="7" rx="1.5" fill="#b45309" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+                case 'glider':
+                    bodySvg = `
+                        <path d="M10 24 L48 20 L56 12 L52 22 L18 27 Z" fill="#f8fafc" stroke="${c}" stroke-width="1.3"/>
+                        <path d="M22 22 L42 15 L45 17 L26 24 Z" fill="${c}"/>
+                        <ellipse cx="18" cy="24" rx="5" ry="2" fill="#0284c7"/>
+                    `;
+                    break;
+                case 'prop_plane':
+                    bodySvg = `
+                        <path d="M14 23 L48 20 L55 13 L52 23 L16 26 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M24 21 L36 14 L40 16 L30 23 Z" fill="#fef08a"/>
+                        <ellipse cx="12" cy="24" rx="2" ry="8" fill="#e2e8f0" stroke="#0f172a" stroke-width="1"/>
+                        <circle cx="24" cy="30" r="2.5" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+                case 'helicopter':
+                    bodySvg = `
+                        <line x1="12" y1="10" x2="48" y2="10" stroke="#f8fafc" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="30" y1="10" x2="30" y2="15" stroke="#f8fafc" stroke-width="2"/>
+                        <path d="M16 23 C16 16 36 14 40 21 L54 20 L56 15 L56 25 L38 26 C34 29 16 29 16 23 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M18 22 C18 18 26 17 28 22 Z" fill="#bae6fd"/>
+                        <path d="M20 32 L38 32 M23 28 L23 32 M34 28 L34 32" stroke="#e2e8f0" stroke-width="1.8" stroke-linecap="round"/>
+                    `;
+                    break;
+                case 'airship':
+                    bodySvg = `
+                        <ellipse cx="32" cy="20" rx="24" ry="10" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <path d="M12 20 Q32 14 52 20 Q32 26 12 20 Z" fill="#fef08a" opacity="0.5"/>
+                        <polygon points="50,14 58,10 56,20 58,30 50,26" fill="#ef4444"/>
+                        <rect x="26" y="30" width="12" height="4" rx="1" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+                case 'jumbo_jet':
+                    bodySvg = `
+                        <path d="M8 25 C8 21 16 19 24 19 L50 19 L57 10 L54 22 L56 25 L12 26 Z" fill="#f8fafc" stroke="${c}" stroke-width="1.3"/>
+                        <path d="M26 22 L42 13 L46 15 L34 24 Z" fill="${c}"/>
+                        <rect x="16" y="21" width="28" height="2" fill="${c}"/>
+                    `;
+                    break;
+                case 'fighter_jet':
+                    bodySvg = `
+                        <polygon points="6,25 22,20 48,19 56,11 53,22 57,25 18,27" fill="#64748b" stroke="${c}" stroke-width="1.3"/>
+                        <path d="M18 20 Q23 16 28 20 Z" fill="#38bdf8"/>
+                        <polygon points="28,22 44,14 46,23" fill="${c}"/>
+                    `;
+                    break;
+                case 'stealth':
+                    bodySvg = `
+                        <polygon points="6,26 30,15 58,25 44,28 32,24 20,28" fill="#1e293b" stroke="${c}" stroke-width="1.5"/>
+                        <polygon points="25,20 32,17 39,20 32,22" fill="#818cf8"/>
+                    `;
+                    break;
+                case 'spaceshuttle':
+                    bodySvg = `
+                        <path d="M10 26 C14 19 24 18 48 18 L55 9 L52 24 L55 28 L12 28 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.3"/>
+                        <path d="M10 26 L16 23 L16 28 Z" fill="#1e293b"/>
+                        <polygon points="26,23 46,14 48,26" fill="#38bdf8" stroke="#0f172a" stroke-width="1"/>
+                        <polygon points="54,21 62,18 60,22 62,26 54,25" fill="#f97316"/>
+                    `;
+                    break;
+                case 'rocket':
+                    bodySvg = `
+                        <path d="M32 3 C25 11 25 22 26 31 L38 31 C39 22 39 11 32 3 Z" fill="#f8fafc" stroke="#ef4444" stroke-width="1.3"/>
+                        <path d="M32 3 C28 8 27 11 27 12 L37 12 C37 11 36 8 32 3 Z" fill="#ef4444"/>
+                        <circle cx="32" cy="18" r="3.5" fill="#38bdf8" stroke="#0f172a" stroke-width="1"/>
+                        <polygon points="26,24 20,32 26,31" fill="#ef4444"/>
+                        <polygon points="38,24 44,32 38,31" fill="#ef4444"/>
+                        <polygon points="28,31 32,41 36,31" fill="#facc15"/>
+                    `;
+                    break;
+
+                // --- 3. 海の乗り物（10種） ---
+                case 'rowboat':
+                    bodySvg = `
+                        <path d="M12 24 L52 24 L45 33 L19 33 Z" fill="#d97706" stroke="#fff" stroke-width="1.2"/>
+                        <line x1="26" y1="22" x2="18" y2="36" stroke="#fde047" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="38" y1="22" x2="46" y2="36" stroke="#fde047" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M6 35 Q18 32 32 35 T58 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'yacht':
+                    bodySvg = `
+                        <polygon points="32,5 32,24 16,24" fill="#f8fafc" stroke="${c}" stroke-width="1"/>
+                        <polygon points="34,8 34,24 47,24" fill="#fef08a" stroke="${c}" stroke-width="1"/>
+                        <path d="M12 26 L52 26 L46 34 L18 34 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M6 36 Q20 33 32 36 T58 36" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'jetski':
+                    bodySvg = `
+                        <path d="M12 29 L22 22 L34 22 L38 17 L44 18 L42 23 L52 26 L48 31 L14 31 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M6 33 Q22 29 36 33 T58 33" stroke="#bae6fd" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'ferry':
+                    bodySvg = `
+                        <rect x="18" y="14" width="28" height="8" rx="1" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="28" y="9" width="6" height="5" fill="#ef4444"/>
+                        <path d="M10 22 L54 22 L49 33 L15 33 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="21" y="16" width="22" height="3" fill="#38bdf8"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'fishing_boat':
+                    bodySvg = `
+                        <rect x="34" y="14" width="11" height="9" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <line x1="24" y1="8" x2="24" y2="23" stroke="#facc15" stroke-width="2"/>
+                        <line x1="24" y1="10" x2="12" y2="18" stroke="#facc15" stroke-width="1.5"/>
+                        <path d="M10 23 L54 23 L48 33 L16 33 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'hovercraft':
+                    bodySvg = `
+                        <rect x="12" y="26" width="40" height="7" rx="3.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M15 26 L19 18 L43 18 L48 26 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="48" cy="18" r="5" fill="none" stroke="#facc15" stroke-width="2"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#22d3ee" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'submarine':
+                    bodySvg = `
+                        <path d="M30 15 L30 9 L35 9" stroke="#facc15" stroke-width="2" fill="none"/>
+                        <rect x="26" y="15" width="11" height="6" rx="1.5" fill="${c}" stroke="#fff" stroke-width="1"/>
+                        <ellipse cx="32" cy="26" rx="22" ry="7" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <circle cx="24" cy="26" r="2" fill="#38bdf8"/>
+                        <circle cx="32" cy="26" r="2" fill="#38bdf8"/>
+                        <circle cx="40" cy="26" r="2" fill="#38bdf8"/>
+                    `;
+                    break;
+                case 'pleasure_boat':
+                    bodySvg = `
+                        <path d="M16 21 L22 14 L44 14 L48 21 Z" fill="#f8fafc" stroke="${c}" stroke-width="1.2"/>
+                        <path d="M10 21 L54 21 L47 32 L15 32 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="23" y="16" width="18" height="3" fill="#38bdf8"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'cruise_ship':
+                    bodySvg = `
+                        <rect x="18" y="10" width="28" height="5" rx="1" fill="#f8fafc"/>
+                        <rect x="15" y="15" width="34" height="6" rx="1" fill="#e2e8f0"/>
+                        <rect x="36" y="5" width="5" height="5" fill="#ef4444"/>
+                        <path d="M8 21 L56 21 L50 33 L14 33 Z" fill="#1e3a8a" stroke="#fff" stroke-width="1.2"/>
+                        <line x1="12" y1="25" x2="52" y2="25" stroke="${c}" stroke-width="2"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#22d3ee" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+                case 'tanker':
+                    bodySvg = `
+                        <rect x="44" y="12" width="9" height="10" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="16" y="19" width="26" height="3" fill="#facc15"/>
+                        <path d="M8 22 L56 22 L52 33 L12 33 Z" fill="#dc2626" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M6 35 Q20 32 32 35 T58 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
+                    `;
+                    break;
+
+                // --- 4. 働く車（10種） ---
+                case 'garbage_truck':
+                    bodySvg = `
+                        <path d="M12 29 L12 18 L20 14 L24 14 L24 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <path d="M24 14 L48 14 L52 22 L50 29 L24 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="14" y="17" width="6" height="5" fill="#bae6fd"/>
+                        <circle cx="19" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="43" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'delivery_truck':
+                    bodySvg = `
+                        <path d="M11 29 L11 19 L18 14 L23 14 L23 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="23" y="11" width="29" height="18" rx="1" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="26" y="15" width="23" height="4" fill="#fef08a"/>
+                        <circle cx="18" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'patrol_car':
+                    bodySvg = `
+                        <rect x="29" y="11" width="6" height="3" rx="1" fill="#ef4444" stroke="#fff" stroke-width="0.8"/>
+                        <path d="M10 29 L12 22 L20 21 L25 14 L41 14 L46 21 L54 22 L54 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.2"/>
+                        <path d="M10 24 L54 24 L54 29 L10 29 Z" fill="#0f172a"/>
+                        <path d="M22 21 L26 16 L39 16 L43 21 Z" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="45" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'ambulance':
+                    bodySvg = `
+                        <rect x="22" y="10" width="5" height="3" rx="1" fill="#ef4444"/>
+                        <path d="M11 29 L11 19 L18 13 L51 13 L51 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.2"/>
+                        <rect x="11" y="23" width="40" height="3" fill="#ef4444"/>
+                        <path d="M35 16 V21 M32.5 18.5 H37.5" stroke="#ef4444" stroke-width="2"/>
+                        <circle cx="19" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'fire_truck':
+                    bodySvg = `
+                        <line x1="18" y1="14" x2="52" y2="7" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M10 29 L10 16 L24 16 L24 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="24" y="18" width="28" height="11" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="13" y="18" width="8" height="5" fill="#bae6fd"/>
+                        <circle cx="18" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'bulldozer':
+                    bodySvg = `
+                        <path d="M10 31 Q6 24 12 18 L15 18 L15 31 Z" fill="#94a3b8" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="22" y="13" width="16" height="13" rx="1" fill="${c}" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="18" y="20" width="28" height="7" fill="${c}"/>
+                        <rect x="19" y="27" width="28" height="6" rx="3" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'excavator':
+                    bodySvg = `
+                        <path d="M36 22 L24 10 L13 20 L10 26 L16 27 L17 22" stroke="${c}" stroke-width="3" stroke-linejoin="round" fill="none"/>
+                        <rect x="28" y="15" width="18" height="12" rx="1.5" fill="${c}" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="30" y="17" width="7" height="6" fill="#bae6fd"/>
+                        <rect x="25" y="27" width="24" height="6" rx="3" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'crane_truck':
+                    bodySvg = `
+                        <line x1="36" y1="18" x2="10" y2="6" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>
+                        <line x1="11" y1="6" x2="11" y2="17" stroke="#f8fafc" stroke-width="1.2"/>
+                        <path d="M12 29 L12 20 L22 20 L22 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <rect x="22" y="21" width="30" height="8" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="19" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'dump_truck':
+                    bodySvg = `
+                        <path d="M11 29 L11 19 L18 14 L23 14 L23 29 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1"/>
+                        <polygon points="24,14 52,9 50,24 24,25" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="18" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'super_crane':
+                    bodySvg = `
+                        <line x1="42" y1="19" x2="8" y2="4" stroke="${c}" stroke-width="4" stroke-linecap="round"/>
+                        <line x1="9" y1="4" x2="9" y2="18" stroke="#facc15" stroke-width="1.5"/>
+                        <rect x="12" y="21" width="42" height="8" rx="1" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="18" cy="31" r="4" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                        <circle cx="28" cy="31" r="4" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                        <circle cx="40" cy="31" r="4" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                        <circle cx="49" cy="31" r="4" fill="#1e293b" stroke="#fff" stroke-width="1"/>
+                    `;
+                    break;
+
+                // --- 5. 国産車（10種） ---
+                case 'kei_car':
+                    bodySvg = `
+                        <path d="M14 29 L15 20 L21 13 L45 13 L48 21 L49 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="22" y="15" width="21" height="6" rx="1" fill="#bae6fd"/>
+                        <circle cx="21" cy="30" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="42" cy="30" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'compact_car':
+                    bodySvg = `
+                        <path d="M12 29 L14 21 L22 14 L42 14 L50 21 L52 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M23 16 L40 16 L45 21 L19 21 Z" fill="#bae6fd"/>
+                        <circle cx="20" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'minivan':
+                    bodySvg = `
+                        <path d="M10 29 L12 20 L20 12 L50 12 L52 21 L52 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="21" y="14" width="27" height="6" rx="1" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'hybrid_car':
+                    bodySvg = `
+                        <path d="M10 29 L13 22 L23 14 L41 14 L51 22 L54 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M24 16 L39 16 L46 22 L18 22 Z" fill="#bae6fd"/>
+                        <circle cx="20" cy="30" r="4.8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.4"/>
+                        <circle cx="44" cy="30" r="4.8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.4"/>
+                    `;
+                    break;
+                case 'jp_suv':
+                    bodySvg = `
+                        <path d="M10 28 L12 19 L21 12 L46 12 L51 19 L53 28 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="22" y="14" width="23" height="6" rx="1" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="5.6" fill="#1e293b" stroke="#fff" stroke-width="1.4"/>
+                        <circle cx="44" cy="30" r="5.6" fill="#1e293b" stroke="#fff" stroke-width="1.4"/>
+                    `;
+                    break;
+                case 'jp_opencar':
+                    bodySvg = `
+                        <path d="M10 29 L12 22 L24 22 L26 16 L28 16 L27 22 L48 21 L54 24 L54 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="19" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="45" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'jp_sports':
+                    bodySvg = `
+                        <path d="M8 29 L12 23 L24 16 L40 16 L51 22 L56 25 L56 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M25 18 L39 18 L46 22 L20 22 Z" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="45" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'jp_gt':
+                    bodySvg = `
+                        <path d="M52 21 L55 15 L51 15" stroke="#fff" stroke-width="1.8" fill="none"/>
+                        <path d="M8 29 L11 23 L24 16 L40 16 L52 22 L56 25 L56 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M25 18 L39 18 L46 22 L20 22 Z" fill="#0f172a"/>
+                        <circle cx="19" cy="30" r="5" fill="#1e293b" stroke="#facc15" stroke-width="1.3"/>
+                        <circle cx="45" cy="30" r="5" fill="#1e293b" stroke="#facc15" stroke-width="1.3"/>
+                    `;
+                    break;
+                case 'jp_supercar':
+                    bodySvg = `
+                        <path d="M7 29 L14 22 L27 15 L42 15 L53 22 L57 26 L57 29 Z" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <path d="M27 17 L40 17 L46 22 L21 22 Z" fill="#38bdf8"/>
+                        <circle cx="18" cy="30" r="5" fill="#0f172a" stroke="#fff" stroke-width="1.3"/>
+                        <circle cx="46" cy="30" r="5" fill="#0f172a" stroke="#fff" stroke-width="1.3"/>
+                    `;
+                    break;
+                case 'jp_limousine':
+                    bodySvg = `
+                        <path d="M6 29 L8 22 L19 21 L24 14 L46 14 L51 21 L58 22 L58 29 Z" fill="#0f172a" stroke="${c}" stroke-width="1.4"/>
+                        <rect x="24" y="16" width="21" height="5" rx="1" fill="#bae6fd"/>
+                        <circle cx="16" cy="30" r="4.8" fill="#1e293b" stroke="#facc15" stroke-width="1.3"/>
+                        <circle cx="48" cy="30" r="4.8" fill="#1e293b" stroke="#facc15" stroke-width="1.3"/>
+                    `;
+                    break;
+
+                // --- 6. 外車（10種） ---
+                case 'eu_compact':
+                    bodySvg = `
+                        <path d="M13 29 C13 21 19 14 32 14 C44 14 50 21 51 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M21 21 C23 16 40 16 42 21 Z" fill="#bae6fd"/>
+                        <circle cx="20" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'us_pickup':
+                    bodySvg = `
+                        <path d="M10 29 L11 20 L21 13 L33 13 L33 21 L53 21 L53 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="22" y="15" width="9" height="6" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="5.5" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                        <circle cx="45" cy="30" r="5.5" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                    `;
+                    break;
+                case 'eu_sedan':
+                    bodySvg = `
+                        <path d="M8 29 L10 22 L20 21 L25 14 L42 14 L47 21 L55 22 L55 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M22 21 L26 16 L40 16 L44 21 Z" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="45" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'classic_car':
+                    bodySvg = `
+                        <path d="M10 29 C10 23 16 21 22 21 L25 14 L42 14 L46 21 C50 21 54 23 54 29 Z" fill="${c}" stroke="#fde047" stroke-width="1.3"/>
+                        <rect x="26" y="16" width="14" height="5" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="5" fill="#1e293b" stroke="#fde047" stroke-width="1.4"/>
+                        <circle cx="45" cy="30" r="5" fill="#1e293b" stroke="#fde047" stroke-width="1.4"/>
+                    `;
+                    break;
+                case 'eu_wagon':
+                    bodySvg = `
+                        <path d="M8 29 L10 22 L20 21 L25 14 L49 14 L52 21 L55 23 L55 29 Z" fill="${c}" stroke="#fff" stroke-width="1.2"/>
+                        <rect x="25" y="16" width="22" height="5" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="45" cy="30" r="4.8" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'london_bus':
+                    bodySvg = `
+                        <rect x="13" y="8" width="38" height="21" rx="3" fill="#dc2626" stroke="#fff" stroke-width="1.3"/>
+                        <rect x="16" y="11" width="32" height="5" rx="1" fill="#bae6fd"/>
+                        <rect x="16" y="19" width="26" height="5" rx="1" fill="#bae6fd"/>
+                        <circle cx="20" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                        <circle cx="44" cy="31" r="4.5" fill="#1e293b" stroke="#fff" stroke-width="1.2"/>
+                    `;
+                    break;
+                case 'lux_suv':
+                    bodySvg = `
+                        <path d="M9 28 L11 19 L20 11 L48 11 L52 19 L54 28 Z" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <rect x="21" y="13" width="25" height="6" rx="1" fill="#bae6fd"/>
+                        <circle cx="19" cy="30" r="5.6" fill="#1e293b" stroke="#facc15" stroke-width="1.4"/>
+                        <circle cx="45" cy="30" r="5.6" fill="#1e293b" stroke="#facc15" stroke-width="1.4"/>
+                    `;
+                    break;
+                case 'us_muscle':
+                    bodySvg = `
+                        <rect x="16" y="19" width="5" height="2" fill="#e2e8f0"/>
+                        <path d="M8 29 L9 21 L23 21 L27 15 L43 15 L48 21 L55 22 L55 29 Z" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <path d="M25 21 L28 16.5 L41 16.5 L45 21 Z" fill="#0f172a"/>
+                        <circle cx="19" cy="30" r="5.2" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                        <circle cx="45" cy="30" r="5.2" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                    `;
+                    break;
+                case 'eu_sports':
+                    bodySvg = `
+                        <path d="M7 29 L12 22 L25 15 L41 15 L52 22 L57 25 L57 29 Z" fill="${c}" stroke="#fff" stroke-width="1.3"/>
+                        <path d="M26 17 L39 17 L45 22 L20 22 Z" fill="#bae6fd"/>
+                        <circle cx="18" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                        <circle cx="46" cy="30" r="5" fill="#1e293b" stroke="#fff" stroke-width="1.3"/>
+                    `;
+                    break;
+                case 'hypercar':
+                default:
+                    bodySvg = `
+                        <path d="M51 21 L56 14 L52 14" stroke="#facc15" stroke-width="2" fill="none"/>
+                        <path d="M6 29 L13 22 L27 14 L42 14 L54 22 L58 26 L58 29 Z" fill="${c}" stroke="#fde047" stroke-width="1.4"/>
+                        <path d="M26 16 L40 16 L46 22 L19 22 Z" fill="#0f172a"/>
+                        <circle cx="18" cy="30" r="5.2" fill="#0f172a" stroke="#facc15" stroke-width="1.5"/>
+                        <circle cx="46" cy="30" r="5.2" fill="#0f172a" stroke="#facc15" stroke-width="1.5"/>
+                    `;
+                    break;
+            }
+
+            return `
+                <svg class="${sizeClass} filter drop-shadow-md" viewBox="0 0 64 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    ${bodySvg}
+                </svg>
+            `;
+        }
+
+        // --- アルバム（カードずかん）機能 ---
+
+        function showAlbum() {
+            stopBGM();
+            hideAllScreens();
+            document.getElementById('album-screen').classList.remove('hidden');
+            renderAlbumGrid();
+        }
+
+        function renderAlbumGrid() {
+            const grid = document.getElementById('album-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const limit = getGlobalCardLimit();
+            const availableCards = POKEMON_CARDS.slice(0, limit);
+
+            availableCards.forEach(card => {
+                const isOwned = gameState.ownedCards.includes(card.id);
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex justify-center items-center cursor-pointer transform hover:scale-105 transition-transform duration-200";
+
+                if (isOwned) {
+                    wrapper.innerHTML = createCardHtml(card);
+                    wrapper.onclick = () => showCardModal(card);
+                } else {
+                    wrapper.innerHTML = `
+                        <div class="w-full h-44 sm:h-52 rounded-2xl bg-slate-900/80 border-2 border-slate-700 flex flex-col items-center justify-center text-slate-600 p-2 text-center shadow-inner relative overflow-hidden">
+                            <i data-lucide="lock" class="w-8 h-8 mb-2 text-slate-600"></i>
+                            <span class="text-xs font-bold text-slate-500">???</span>
+                        </div>
+                    `;
+                }
+                grid.appendChild(wrapper);
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function showCardModalById(cardId) {
+            const card = POKEMON_CARDS.find(c => c.id === cardId);
+            if (card) showCardModal(card);
+        }
+
+        function showCardModal(card) {
+            const container = document.getElementById('modal-card-container');
+            if (!container) return;
+            container.innerHTML = createCardHtml(card, true);
+
+            // 既読処理
+            const newIndex = gameState.newCards.indexOf(card.id);
+            if (newIndex !== -1) {
+                gameState.newCards.splice(newIndex, 1);
+                saveData();
+                if (!document.getElementById('album-screen').classList.contains('hidden')) {
+                    renderAlbumGrid();
+                }
+            }
+
+            document.getElementById('card-modal').classList.remove('hidden');
+        }
+
+        function closeCardModal() {
+            document.getElementById('card-modal').classList.add('hidden');
+        }
+
+        // --- お祝い演出（紙吹雪 & 連発花火） ---
+        let celebrationAnimId = null;
+
+        function launchCelebration(isComplete = false, isAllClear = false) {
+            const canvas = document.getElementById('celebration-canvas');
+            if (!canvas) return;
+            canvas.classList.remove('hidden');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const fireworks = [];
+
+            const particleCount = isComplete ? 200 : (isAllClear ? 150 : 80);
+            const colors = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#84cc16', '#eab308', '#f97316'];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: Math.random() * 2 - 1,
+                    vy: Math.random() * 3 + 2,
+                    rot: Math.random() * 360,
+                    vRot: Math.random() * 10 - 5
+                });
+            }
+
+            function createFirework() {
+                const fx = Math.random() * (canvas.width * 0.8) + canvas.width * 0.1;
+                const fy = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
+                const count = Math.floor(Math.random() * 30) + 40;
+                const fwColor = colors[Math.floor(Math.random() * colors.length)];
+
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.2;
+                    const speed = Math.random() * 5 + 3;
+                    fireworks.push({
+                        x: fx,
+                        y: fy,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: Math.random() * 3 + 2,
+                        color: fwColor,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            }
+
+            let fwTimer = 0;
+            const fwFrequency = isComplete ? 12 : 25;
+
+            if (celebrationAnimId) cancelAnimationFrame(celebrationAnimId);
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                fwTimer++;
+                if (fwTimer % fwFrequency === 0) {
+                    createFirework();
+                }
+
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    const fw = fireworks[i];
+                    fw.x += fw.vx;
+                    fw.y += fw.vy;
+                    fw.vy += 0.05;
+                    fw.alpha -= fw.decay;
+
+                    if (fw.alpha <= 0) {
+                        fireworks.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = fw.alpha;
+                    ctx.fillStyle = fw.color;
+                    ctx.beginPath();
+                    ctx.arc(fw.x, fw.y, fw.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vRot;
+
+                    if (p.y > canvas.height) {
+                        p.y = -10;
+                        p.x = Math.random() * canvas.width;
+                    }
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rot * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+
+                celebrationAnimId = requestAnimationFrame(loop);
+            }
+
+            loop();
+
+            setTimeout(() => {
+                if (celebrationAnimId) cancelAnimationFrame(celebrationAnimId);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.classList.add('hidden');
+            }, isComplete ? 8000 : 5000);
+        }
+
+        // ウィンドウロード時初期化
+        window.onload = function() {
+            loadSaveData();
+            showStageSelect();
+        };
+    </script>
+</body>
+</html>
