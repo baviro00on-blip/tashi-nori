@@ -1513,13 +1513,13 @@
             document.getElementById('clear-screen').classList.remove('hidden');
         }
 
-        // レベルと図鑑開放状況に応じた1枚抽選ロジック（重複せず必ずNEWカードを引く）
+        // レベルと図鑑開放状況に応じた1枚抽選ロジック（重複せず、解放前のカードは絶対に出現しない）
         function drawCardForLevel(level, alreadyDrawnIds = []) {
             const info = LEVELS_INFO.find(l => l.level === level) || LEVELS_INFO[0];
             const globalLimit = getGlobalCardLimit(); // 20 -> 40 -> 60
             const effectiveLimit = Math.min(globalLimit, info.maxPool);
 
-            // 現在のレベル範囲内の未所持・未排出カードを抽出
+            // 1. 現在のレベル範囲かつ現在の解放上限内の未所持・未排出カードを抽出
             const poolInLevel = POKEMON_CARDS.slice(0, effectiveLimit);
             const unownedInLevel = poolInLevel.filter(
                 c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
@@ -1528,7 +1528,7 @@
                 return pickWeightedCard(unownedInLevel, level);
             }
 
-            // レベル範囲内がすべて所持済みの場合は、現在の図鑑上限（20/40/60）内の未所持カードを抽出
+            // 2. レベル範囲内がすべて所持済みの場合は、現在の解放上限（20/40/60）内の未所持・未排出カードを抽出
             const poolInGlobal = POKEMON_CARDS.slice(0, globalLimit);
             const unownedInGlobal = poolInGlobal.filter(
                 c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
@@ -1537,16 +1537,14 @@
                 return pickWeightedCard(unownedInGlobal, level);
             }
 
-            // 全60種の中で未所持カードが残っている場合
-            const unownedAll = POKEMON_CARDS.filter(
-                c => !gameState.ownedCards.includes(c.id) && !alreadyDrawnIds.includes(c.id)
-            );
-            if (unownedAll.length > 0) {
-                return pickWeightedCard(unownedAll, level);
+            // 3. 解放上限内のすべてのカードが所持済み（全60枚コンプリート済み）の場合でも、
+            // 1回のステージクリア内での重複（alreadyDrawnIds）は絶対に防ぐ
+            const availablePool = poolInGlobal.filter(c => !alreadyDrawnIds.includes(c.id));
+            if (availablePool.length > 0) {
+                return pickWeightedCard(availablePool, level);
             }
 
-            // 全60種コンプリート済みの場合はランダム抽選
-            return pickWeightedCard(poolInLevel, level);
+            return pickWeightedCard(poolInGlobal, level);
         }
 
         function handleNextStep() {
